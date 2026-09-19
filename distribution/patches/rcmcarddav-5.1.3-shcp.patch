@@ -1,0 +1,349 @@
+--- a/src/Config.php
++++ b/src/Config.php
+@@ -69,6 +69,12 @@
+     /** @var ?rcube_cache */
+     protected $cache;
+ 
++    /** Downstream authorization hook: runs even when an operation uses only cached data. */
++    public static function assertCacheAccess(string $bookId): void
++    {
++        \rcube::get_instance()->plugins->exec_hook('carddav_cache_access', ['book_id'=>$bookId]);
++    }
++
+     public static function inst(): Config
+     {
+         if (!isset(self::$inst)) {
+@@ -132,7 +138,8 @@
+         if (!isset($this->cache)) {
+             // TODO make TTL and cache type configurable
+             $rcube = rcube::get_instance();
+-            $this->cache = $rcube->get_cache("carddav", "db", "1w");
++            $hook = $rcube->plugins->exec_hook('carddav_cache_namespace', ['namespace'=>'carddav']);
++            $this->cache = $rcube->get_cache($hook['namespace'], "db", "1w");
+         }
+ 
+         if (!isset($this->cache)) {
+@@ -167,6 +174,8 @@
+      */
+     public static function makeAccount(array $accountCfg): Account
+     {
++        $hook = \rcube::get_instance()->plugins->exec_hook('carddav_account', ['config'=>$accountCfg, 'account'=>null]);
++        if ($hook['account'] instanceof Account) { return $hook['account']; }
+         $password = Utils::replacePlaceholdersPassword($accountCfg['password'] ?? '');
+ 
+         if ($password == "%b") {
+--- a/src/Frontend/AdminSettings.php
++++ b/src/Frontend/AdminSettings.php
+@@ -208,6 +208,9 @@
+                 $prefs = [];
+             }
+         }
++
++        $hook = \rcube::get_instance()->plugins->exec_hook('carddav_admin_settings', ['prefs'=>$prefs]);
++        $prefs = $hook['prefs'];
+ 
+         $gprefs = [];
+         if (isset($prefs['_GLOBAL'])) {
+--- a/src/Frontend/AddressbookManager.php
++++ b/src/Frontend/AddressbookManager.php
+@@ -219,6 +219,7 @@
+      */
+     public function getAccountIds(bool $presetsOnly = false): array
+     {
++        \rcube::get_instance()->plugins->exec_hook('carddav_accounts_prepare', []);
+         $db = Config::inst()->db();
+ 
+         if (!isset($this->accountsDb)) {
+@@ -230,7 +231,8 @@
+             }
+         }
+ 
+-        $result = $this->accountsDb;
++        $hook = \rcube::get_instance()->plugins->exec_hook('carddav_accounts_filter', ['accounts'=>$this->accountsDb]);
++        $result = $hook['accounts'];
+ 
+         if ($presetsOnly) {
+             $result = array_filter($result, function (array $v): bool {
+@@ -254,7 +256,7 @@
+         $this->getAccountIds();
+ 
+         // check that this addressbook ID actually refers to one of the user's addressbooks
+-        if (isset($this->accountsDb[$accountId])) {
++        if (in_array($accountId, $this->getAccountIds(), true) && isset($this->accountsDb[$accountId])) {
+             $accountCfg = $this->accountsDb[$accountId];
+             $accountCfg["password"] = Utils::decryptPassword($accountCfg["password"]);
+             return $accountCfg;
+@@ -415,7 +417,8 @@
+             }
+         }
+ 
+-        $result = $this->abooksDb;
++        $allowedAccounts = $this->getAccountIds();
++        $result = array_filter($this->abooksDb, static fn(array $row): bool => in_array($row['account_id'], $allowedAccounts, true));
+ 
+         // filter out the addressbooks of the accounts matching the filter conditions
+         if ($presetsOnly) {
+@@ -446,7 +449,7 @@
+         $this->getAddressbookIds();
+ 
+         // check that this addressbook ID actually refers to one of the user's addressbooks
+-        if (isset($this->abooksDb[$abookId])) {
++        if (in_array($abookId, $this->getAddressbookIds(self::ABF_ALL), true) && isset($this->abooksDb[$abookId])) {
+             return $this->abooksDb[$abookId];
+         }
+ 
+--- a/src/Addressbook.php
++++ b/src/Addressbook.php
+@@ -98,6 +98,7 @@
+         $this->readonly = ($config['readonly'] != '0');
+         $this->date_cols = ['birthday', 'anniversary'];
+         $this->id       = $dbid;
++        Config::assertCacheAccess($this->id);
+ 
+         $this->dataConverter = new DataConversion($dbid);
+         $this->coltypes = $this->dataConverter->getColtypes();
+@@ -117,6 +118,7 @@
+     // phpcs:ignore PSR1.Methods.CamelCapsMethodName -- method name defined by rcube_addressbook class
+     public function get_name(): string
+     {
++        Config::assertCacheAccess($this->id);
+         return $this->config['name'];
+     }
+ 
+@@ -135,6 +137,7 @@
+     // phpcs:ignore PSR1.Methods.CamelCapsMethodName -- method name defined by rcube_addressbook class
+     public function set_search_set($filter): void
+     {
++        Config::assertCacheAccess($this->id);
+         if (is_array($filter)) {
+             $ftyped = [];
+             foreach (array_keys($filter) as $k) {
+@@ -158,6 +161,7 @@
+     // phpcs:ignore PSR1.Methods.CamelCapsMethodName -- method name defined by rcube_addressbook class
+     public function get_search_set()
+     {
++        Config::assertCacheAccess($this->id);
+         return $this->filter;
+     }
+ 
+@@ -166,6 +170,7 @@
+      */
+     public function reset(): void
+     {
++        Config::assertCacheAccess($this->id);
+         $this->result = null;
+         $this->filter = [];
+     }
+@@ -200,6 +205,7 @@
+     // phpcs:ignore PSR1.Methods.CamelCapsMethodName -- method name defined by rcube_addressbook class
+     public function list_records($cols = null, $subset = 0, $nocount = false)
+     {
++        Config::assertCacheAccess($this->id);
+         $first = ($this->list_page - 1) * $this->page_size;
+         $result = new rcube_result_set(0, $first);
+ 
+@@ -283,6 +289,7 @@
+      */
+     public function search($fields, $value, $mode = 0, $select = true, $nocount = false, $required = [])
+     {
++        Config::assertCacheAccess($this->id);
+         $logger = Config::inst()->logger();
+         $mode = intval($mode);
+ 
+@@ -376,6 +383,7 @@
+      */
+     public function count(): rcube_result_set
+     {
++        Config::assertCacheAccess($this->id);
+         try {
+             $numCards = $this->doCount();
+             return new rcube_result_set($numCards, ($this->list_page - 1) * $this->page_size);
+@@ -395,6 +403,7 @@
+     // phpcs:ignore PSR1.Methods.CamelCapsMethodName -- method name defined by rcube_addressbook class
+     public function get_result(): ?rcube_result_set
+     {
++        Config::assertCacheAccess($this->id);
+         return $this->result;
+     }
+ 
+@@ -413,6 +422,7 @@
+     // phpcs:ignore PSR1.Methods.CamelCapsMethodName -- method name defined by rcube_addressbook class
+     public function get_record($id, $assoc = false)
+     {
++        Config::assertCacheAccess($this->id);
+         $infra = Config::inst();
+         $logger = $infra->logger();
+ 
+@@ -448,6 +458,7 @@
+     // phpcs:ignore PSR1.Methods.CamelCapsMethodName -- method name defined by rcube_addressbook class
+     public function set_sort_order($sort_col = null, $sort_order = null): void
+     {
++        Config::assertCacheAccess($this->id);
+         if (isset($sort_col) && key_exists($sort_col, $this->coltypes)) {
+             $this->sort_col = $sort_col;
+         }
+@@ -469,6 +480,7 @@
+      */
+     public function insert($save_data, $check = false)
+     {
++        Config::assertCacheAccess($this->id);
+         $infra = Config::inst();
+         $logger = $infra->logger();
+ 
+@@ -532,6 +544,7 @@
+      */
+     public function update($id, $save_cols)
+     {
++        Config::assertCacheAccess($this->id);
+         $infra = Config::inst();
+         $logger = $infra->logger();
+ 
+@@ -584,6 +597,7 @@
+      */
+     public function delete($ids, $force = true)
+     {
++        Config::assertCacheAccess($this->id);
+         $infra = Config::inst();
+         $logger = $infra->logger();
+         $db = $infra->db();
+@@ -652,6 +666,7 @@
+     // phpcs:ignore PSR1.Methods.CamelCapsMethodName -- method name defined by rcube_addressbook class
+     public function delete_all($with_groups = false): void
+     {
++        Config::assertCacheAccess($this->id);
+         $infra = Config::inst();
+         $logger = $infra->logger();
+ 
+@@ -713,6 +728,7 @@
+     // phpcs:ignore PSR1.Methods.CamelCapsMethodName -- method name defined by rcube_addressbook class
+     public function set_group($group_id): void
+     {
++        Config::assertCacheAccess($this->id);
+         $infra = Config::inst();
+         $logger = $infra->logger();
+ 
+@@ -744,6 +760,7 @@
+     // phpcs:ignore PSR1.Methods.CamelCapsMethodName -- method name defined by rcube_addressbook class
+     public function list_groups($search = null, $mode = 0): array
+     {
++        Config::assertCacheAccess($this->id);
+         $infra = Config::inst();
+         $logger = $infra->logger();
+ 
+@@ -805,6 +822,7 @@
+     // phpcs:ignore PSR1.Methods.CamelCapsMethodName -- method name defined by rcube_addressbook class
+     public function get_group($group_id): ?array
+     {
++        Config::assertCacheAccess($this->id);
+         $infra = Config::inst();
+         $logger = $infra->logger();
+ 
+@@ -837,6 +855,7 @@
+     // phpcs:ignore PSR1.Methods.CamelCapsMethodName -- method name defined by rcube_addressbook class
+     public function create_group($name)
+     {
++        Config::assertCacheAccess($this->id);
+         $infra = Config::inst();
+         $logger = $infra->logger();
+ 
+@@ -876,6 +895,7 @@
+     // phpcs:ignore PSR1.Methods.CamelCapsMethodName -- method name defined by rcube_addressbook class
+     public function delete_group($group_id): bool
+     {
++        Config::assertCacheAccess($this->id);
+         $infra = Config::inst();
+         $logger = $infra->logger();
+         $db = $infra->db();
+@@ -934,6 +954,7 @@
+     // phpcs:ignore PSR1.Methods.CamelCapsMethodName -- method name defined by rcube_addressbook class
+     public function rename_group($group_id, $newname, &$newid)
+     {
++        Config::assertCacheAccess($this->id);
+         $infra = Config::inst();
+         $logger = $infra->logger();
+ 
+@@ -1001,6 +1022,7 @@
+     // phpcs:ignore PSR1.Methods.CamelCapsMethodName -- method name defined by rcube_addressbook class
+     public function add_to_group($group_id, $ids): int
+     {
++        Config::assertCacheAccess($this->id);
+         /** @var list<string>|string $ids */
+         $added = 0;
+ 
+@@ -1112,6 +1134,7 @@
+     // phpcs:ignore PSR1.Methods.CamelCapsMethodName -- method name defined by rcube_addressbook class
+     public function remove_from_group($group_id, $ids): int
+     {
++        Config::assertCacheAccess($this->id);
+         /** @var list<string>|string $ids */
+         $deleted = 0;
+         $infra = Config::inst();
+@@ -1188,6 +1211,7 @@
+     // phpcs:ignore PSR1.Methods.CamelCapsMethodName -- method name defined by rcube_addressbook class
+     public function get_record_groups($id): array
+     {
++        Config::assertCacheAccess($this->id);
+         $id = (string) $id;
+         $infra = Config::inst();
+         $logger = $infra->logger();
+@@ -1223,6 +1247,7 @@
+ 
+     public function getId(): string
+     {
++        Config::assertCacheAccess($this->id);
+         return $this->id;
+     }
+ 
+@@ -1233,6 +1258,7 @@
+      */
+     public function getRefreshTime(): int
+     {
++        Config::assertCacheAccess($this->id);
+         return intval($this->config['refresh_time']);
+     }
+ 
+@@ -1243,6 +1269,7 @@
+      */
+     public function resync(): int
+     {
++        Config::assertCacheAccess($this->id);
+         $infra = Config::inst();
+         $logger = $infra->logger();
+         $db = $infra->db();
+@@ -1275,6 +1302,7 @@
+      */
+     public function checkResyncDue(): int
+     {
++        Config::assertCacheAccess($this->id);
+         $ts_now = time();
+         $ts_nextupd = intval($this->config["last_updated"]) + intval($this->config["refresh_time"]);
+         return ($ts_nextupd - $ts_now);
+@@ -1609,6 +1637,7 @@
+      */
+     public function getCardDavObj(): AddressbookCollection
+     {
++        Config::assertCacheAccess($this->id);
+         if (!isset($this->davAbook)) {
+             $infra = Config::inst();
+             $url = $this->config["url"];
+--- a/src/DataConversion.php
++++ b/src/DataConversion.php
+@@ -422,6 +422,7 @@
+         }
+ 
+         $save_data['_carddav_vcard'] = $vcard;
++        $save_data['_carddav_abook_id'] = $this->abookId;
+ 
+         /** @psalm-var SaveDataFromDC $save_data XXX temporary workaround for vimeo/psalm#8980 */
+         return $save_data;
+--- a/carddav.php
++++ b/carddav.php
+@@ -471,6 +471,8 @@
+         /** @psalm-var SaveDataFromDC $save_data */
+         foreach ($saveDataSet["result"]->records as &$save_data) {
+             if (isset($save_data["_carddav_vcard"])) {
++                if (!isset($save_data['_carddav_abook_id'])) { throw new \RuntimeException('Missing CardDAV export provenance'); }
++                Config::assertCacheAccess($save_data['_carddav_abook_id']);
+                 $vcf = DataConversion::exportVCard($save_data["_carddav_vcard"], $save_data);
+                 $save_data["vcard"] = $vcf;
+             }

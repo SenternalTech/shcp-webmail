@@ -1,0 +1,20 @@
+{
+  "format": 1,
+  "release_id": "webmail-1.6.19-shcp.1",
+  "version": "1.6.19",
+  "revision": 1,
+  "source_date_epoch": 1789776000,
+  "roundcube": {
+    "file": "roundcubemail-1.6.19-complete.tar.gz",
+    "sha256": "c47fd99cd7cbb7aee2557d8ca614a4c51e91f6fa3767ca4ce32c6126f9ebff5b",
+    "url": "https://github.com/roundcube/roundcubemail/releases/download/1.6.19/roundcubemail-1.6.19-complete.tar.gz",
+    "prefix": "roundcubemail-1.6.19",
+    "source_commit": "29beae7282135a3cd59a3945bd33ee8f904d6217"
+  },
+  "carddav": {
+    "file": "carddav-v5.1.3.tar.gz",
+    "sha256": "f6c84fcbb7726292f13cdec7cd74bd93cb4241f6f4650e8dde3bca004b39908a",
+    "url": "https://github.com/mstilkerich/rcmcarddav/releases/download/v5.1.3/carddav-v5.1.3.tar.gz",
+    "prefix": "carddav"
+  }
+}
