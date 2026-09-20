@@ -23,6 +23,7 @@ class shcp_dav extends rcube_plugin
         $this->add_hook('shcp_sso_authenticated',[$this,'ssoAuthenticated']);
         $this->add_hook('startup', [$this, 'startup']);
         $this->add_hook('session_destroy',[$this,'logout']);
+        $this->add_hook('user_delete_prepare',[$this,'userDelete']);
         $this->add_hook('carddav_admin_settings',[$this,'settings']);
         $this->add_hook('carddav_accounts_prepare',[$this,'prepareAccounts']);
         $this->add_hook('carddav_accounts_filter',[$this,'filterAccounts']);
@@ -47,9 +48,18 @@ class shcp_dav extends rcube_plugin
         if (!is_string($origin) || ($ca!==null && !is_string($ca))) throw new RuntimeException('Contacts configuration unavailable');
         $this->transport=new \Shcp\Webmail\Dav\Transport($origin,$ca);
         $this->credentials=new \Shcp\Webmail\Dav\Credentials($rc,$this->transport);
-        $dsn=$rc->config->get('db_dsnw');
-        if (!is_string($dsn) || !str_starts_with($dsn,'sqlite:') || str_contains($dsn,'?')) throw new RuntimeException('Contacts require SQLite');
-        $this->bindings=new \Shcp\Webmail\Dav\Bindings(new PDO($dsn),(string)$rc->config->get('db_prefix',''));
+        $this->cache();
+    }
+    /** The managed cache alone, with no transport configuration: user deletion must work without DAV. */
+    private function cache(): \Shcp\Webmail\Dav\Bindings
+    {
+        if ($this->bindings===null) {
+            $rc=rcube::get_instance();
+            $dsn=$rc->config->get('db_dsnw');
+            if (!is_string($dsn) || !str_starts_with($dsn,'sqlite:') || str_contains($dsn,'?')) throw new RuntimeException('Contacts require SQLite');
+            $this->bindings=new \Shcp\Webmail\Dav\Bindings(new PDO($dsn),(string)$rc->config->get('db_prefix',''));
+        }
+        return $this->bindings;
     }
     public function ssoAuthenticated(array $args): array
     {
@@ -175,6 +185,20 @@ class shcp_dav extends rcube_plugin
     {
         // Photo cache must not share UID keys between principal generations.
         if ($this->prepare()) $args['namespace']='carddav-shcp-'.hash('sha256',$this->identity['binding_id']);
+        return $args;
+    }
+    /**
+     * Roundcube fires this before it opens its own deletion transaction, so the managed cache is
+     * purged on its own writer lock. Failing here aborts the deletion rather than leaving a user
+     * whose guards have been removed.
+     */
+    public function userDelete(array $args): array
+    {
+        try {
+            $user=$args['user']??null;
+            if (!$user instanceof rcube_user || (int)$user->ID<1) throw new RuntimeException('Unknown user');
+            $this->cache()->purge((int)$user->ID);
+        } catch (Throwable $e) {$args['abort']=true;}
         return $args;
     }
     public function logout(array $args): array

@@ -58,3 +58,87 @@ $db->exec('DELETE FROM users WHERE user_id=2');
 check((int)$db->query('SELECT COUNT(*) FROM carddav_addressbooks WHERE id=50')->fetchColumn()===0,'ordinary cache cascade blocked');
 check((int)$db->query('SELECT COUNT(*) FROM users WHERE user_id=2')->fetchColumn()===0,'ordinary user deletion blocked');
 echo "PASS actual upstream user cascade preserves managed identities; ordinary user deletion remains available\n";
+// A deployment that never installed the managed cache has nothing to purge and no guard to satisfy;
+// the delete hook must not turn that into a refusal to remove any user at all.
+$bare=new PDO('sqlite:'.$dir.'/bare.db');$bare->setAttribute(PDO::ATTR_ERRMODE,PDO::ERRMODE_EXCEPTION);
+$bare->exec('CREATE TABLE users(user_id INTEGER PRIMARY KEY)');$bare->exec('INSERT INTO users VALUES(1)');
+$bare->exec(str_replace('TABLE_PREFIX','',file_get_contents($argv[1].'/dbmigrations/INIT-currentschema/sqlite3.sql')));
+check((new Bindings($bare))->purge(1)===0,'purge refused a deployment with no managed cache');
+$bare->exec('DELETE FROM users WHERE user_id=1');
+check((int)$bare->query('SELECT COUNT(*) FROM users')->fetchColumn()===0,'unmanaged deployment lost ordinary user deletion');
+echo "PASS purge is a no-op where the managed cache was never installed\n";
+// Premise, on an untouched upstream schema: the rowid aliases really are handed out again, so a
+// cleanup that only deletes rows would let a later owner inherit a purged book.
+$plain=new PDO('sqlite:'.$dir.'/plain.db');$plain->setAttribute(PDO::ATTR_ERRMODE,PDO::ERRMODE_EXCEPTION);
+$plain->exec('CREATE TABLE users(user_id INTEGER PRIMARY KEY)');$plain->exec('INSERT INTO users VALUES(1)');
+$plain->exec(str_replace('TABLE_PREFIX','',file_get_contents($argv[1].'/dbmigrations/INIT-currentschema/sqlite3.sql')));
+$plain->exec("INSERT INTO carddav_accounts(accountname,username,password,discovery_url,user_id) VALUES('A','a@example.test','%p','https://panel.example.test/',1)");
+$plainAccount=(int)$plain->lastInsertId();
+$plain->exec("INSERT INTO carddav_addressbooks(name,url,account_id) VALUES('B','https://panel.example.test/dav/b',$plainAccount)");
+$plainBook=(int)$plain->lastInsertId();
+$plain->exec("DELETE FROM carddav_addressbooks WHERE id=$plainBook");
+$plain->exec("INSERT INTO carddav_addressbooks(name,url,account_id) VALUES('B2','https://panel.example.test/dav/b2',$plainAccount)");
+check((int)$plain->lastInsertId()===$plainBook,'premise refuted: upstream book identifiers were already non-reusable');
+// Upgrading an existing deployment converts both identifier spaces in place, with its cache intact.
+$plain->exec("INSERT INTO carddav_contacts(abook_id,name,vcard,etag,uri,cuid) VALUES((SELECT MAX(id) FROM carddav_addressbooks),'Kept','kept-card','kept-etag','kept.vcf','kept-uid')");
+$keptBook=(int)$plain->query('SELECT MAX(id) FROM carddav_addressbooks')->fetchColumn();
+(new Bindings($plain))->install();
+check((int)$plain->query('SELECT COUNT(*) FROM carddav_accounts')->fetchColumn()===1,'upgrade lost accounts');
+check((int)$plain->query('SELECT account_id FROM carddav_addressbooks')->fetchColumn()===$plainAccount,'upgrade lost book ownership');
+check($plain->query('SELECT name FROM carddav_contacts')->fetchColumn()==='Kept','upgrade lost cached contacts');
+check($plain->query('PRAGMA foreign_key_check')->fetch()===false,'upgrade left dangling references');
+$plain->exec("DELETE FROM carddav_addressbooks WHERE id=$keptBook");
+$plain->exec("INSERT INTO carddav_addressbooks(name,url,account_id) VALUES('B3','https://panel.example.test/dav/b3',$plainAccount)");
+check((int)$plain->lastInsertId()>$keptBook,'upgraded schema still reused a deleted book identifier');
+echo "PASS upstream identifier reuse reproduced, then converted in place with the existing cache intact\n";
+// Managed-cache cleanup: the live generation has real cached data to remove.
+$db->exec("INSERT INTO carddav_addressbooks(name,url,account_id) VALUES('Live','https://panel.example.test/dav/live',$d)");
+$liveBook=(int)$db->lastInsertId();
+$db->exec("INSERT INTO carddav_contacts(abook_id,name,vcard,etag,uri,cuid) VALUES($liveBook,'Live Person','live-card','live-etag','live.vcf','live-uid')");
+$used=[$a,$b,$c,$d];$usedBooks=[1,2,$liveBook];
+check($store->purge(1)===count($used),'purge did not remove every mapped account');
+check((int)$db->query('SELECT COUNT(*) FROM carddav_accounts WHERE id IN ('.implode(',',$used).')')->fetchColumn()===0,'purge left mapped accounts');
+check((int)$db->query('SELECT COUNT(*) FROM carddav_contacts')->fetchColumn()===0,'purge left cached contacts');
+check((int)$db->query('SELECT COUNT(*) FROM carddav_addressbooks')->fetchColumn()===0,'purge left cached books');
+check((int)$db->query('SELECT COUNT(*) FROM shcp_dav_bindings WHERE user_id=1')->fetchColumn()===0,'purge left mapping rows');
+check((int)$db->query('SELECT COUNT(*) FROM shcp_dav_cleanup')->fetchColumn()===0,'purge left its journal open');
+$db->exec('DELETE FROM users WHERE user_id=1');
+check((int)$db->query('SELECT COUNT(*) FROM users WHERE user_id=1')->fetchColumn()===0,'purged user still undeletable');
+echo "PASS purge removes the requested user's managed cache and restores ordinary deletion\n";
+// Reuse case: a later owner must not be handed anything the purged generation held, and the stale
+// request that outlived the purge must have nowhere to land.
+$db->exec('INSERT INTO users VALUES(3)');
+$next=$store->activate(3,'shcp',str_repeat('e',32),'bob@example.test','https://panel.example.test');
+check(!in_array($next,$used,true),'later generation inherited a purged account identifier');
+$db->exec("INSERT INTO carddav_addressbooks(name,url,account_id) VALUES('Next','https://panel.example.test/dav/next',$next)");
+$nextBook=(int)$db->lastInsertId();
+check(!in_array($nextBook,$usedBooks,true),'later generation inherited a purged book identifier');
+check($store->accountForBook((string)$liveBook)===null,'purged book resolved to a later owner');
+denied(fn()=>$db->exec("INSERT INTO carddav_contacts(abook_id,name,vcard,etag,uri,cuid) VALUES($liveBook,'Stale','stale-card','stale-etag','stale.vcf','stale-uid')"),'stale request wrote into a reissued book');
+denied(fn()=>$db->exec("INSERT INTO carddav_accounts(id,accountname,username,password,discovery_url,user_id) VALUES($d,'Reused','bob@example.test','%p','https://panel.example.test/',3)"),'purged account identifier reissued explicitly');
+denied(fn()=>$db->exec("INSERT INTO carddav_addressbooks(id,name,url,account_id) VALUES($liveBook,'Reused','https://panel.example.test/dav/reused',$next)"),'purged book identifier reissued explicitly');
+echo "PASS purged account and book identifiers cannot be inherited, claimed, or written to by a stale request\n";
+// Interrupted cleanup: purge()'s own first commit lands, then its second transaction dies. The
+// fence must already be on disk, stay closed, and the re-run must finish it.
+$db->exec('INSERT INTO users VALUES(4)');
+$f=$store->activate(4,'shcp',str_repeat('f',32),'carol@example.test','https://panel.example.test');
+$db->exec("INSERT INTO carddav_addressbooks(name,url,account_id) VALUES('Carol','https://panel.example.test/dav/carol',$f)");
+$fBook=(int)$db->lastInsertId();
+$db->exec("INSERT INTO carddav_contacts(abook_id,name,vcard,etag,uri,cuid) VALUES($fBook,'Carol Person','carol-card','carol-etag','carol.vcf','carol-uid')");
+$db->exec("CREATE TRIGGER test_interrupt_purge BEFORE DELETE ON carddav_accounts WHEN OLD.id=$f BEGIN SELECT RAISE(ABORT,'staged interruption'); END");
+denied(fn()=>$store->purge(4),'staged interruption did not stop the purge');
+$db->exec('DROP TRIGGER test_interrupt_purge');
+check(!$store->current(4,$f,str_repeat('f',32)),'interrupted cleanup left the generation authorized');
+check((int)$db->query('SELECT COUNT(*) FROM shcp_dav_cleanup WHERE user_id=4')->fetchColumn()===1,'interrupted cleanup left no journal to resume from');
+denied(fn()=>$db->exec("UPDATE carddav_contacts SET name='late' WHERE abook_id=$fBook"),'interrupted cleanup allowed a cache write');
+denied(fn()=>$store->activate(4,'shcp',str_repeat('g',32),'carol@example.test','https://panel.example.test'),'interrupted cleanup allowed a replacement generation');
+denied(fn()=>$db->exec('DELETE FROM users WHERE user_id=4'),'interrupted cleanup released the user deletion guard');
+check($store->purge(4)===1,'resumed purge did not finish');
+$db->exec('DELETE FROM users WHERE user_id=4');
+check((int)$db->query('SELECT COUNT(*) FROM users WHERE user_id=4')->fetchColumn()===0,'resumed purge left the user undeletable');
+$db->exec('INSERT INTO users VALUES(5)');
+$h=$store->activate(5,'shcp',str_repeat('h',32),'dave@example.test','https://panel.example.test');
+check($h!==$f,'resumed purge released its account identifier');
+$db->exec("INSERT INTO carddav_addressbooks(name,url,account_id) VALUES('Dave','https://panel.example.test/dav/dave',$h)");
+check((int)$db->lastInsertId()!==$fBook,'resumed purge released its book identifier');
+echo "PASS interrupted cleanup stays fenced, resumes, and still retires both identifiers\n";
