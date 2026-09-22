@@ -44,6 +44,45 @@ function wm_assert_regular_tree(string $root): array
     return $files;
 }
 
+function wm_reviewed_git_files(string $repository, array $paths): array
+{
+    $repository = realpath($repository) ?: '';
+    $inside = [];
+    $insideCode = 0;
+    exec('git -C ' . escapeshellarg($repository) . ' rev-parse --is-inside-work-tree 2>/dev/null', $inside, $insideCode);
+    if ($repository === '' || $insideCode !== 0 || ($inside[0] ?? '') !== 'true') {
+        throw new RuntimeException('Corresponding source must be built from a Git checkout');
+    }
+    $quoted = array_map('escapeshellarg', $paths);
+    $scope = implode(' ', $quoted);
+    $status = [];
+    $statusCode = 0;
+    exec('git -C ' . escapeshellarg($repository) . ' status --porcelain=v1 --untracked-files=all -- ' . $scope, $status, $statusCode);
+    if ($statusCode !== 0 || $status !== []) {
+        throw new RuntimeException('Reviewed distribution/plugin inputs are dirty or untracked');
+    }
+    $listed = [];
+    $listCode = 0;
+    exec('git -C ' . escapeshellarg($repository) . ' ls-files -- ' . $scope, $listed, $listCode);
+    if ($listCode !== 0 || $listed === []) {
+        throw new RuntimeException('Cannot enumerate reviewed Git inputs');
+    }
+    $files = [];
+    foreach ($listed as $relative) {
+        if ($relative === '' || str_contains($relative, "\n") || str_contains($relative, "\\")
+            || in_array('..', explode('/', $relative), true)) {
+            throw new RuntimeException('Unsafe reviewed Git path');
+        }
+        $path = "$repository/$relative";
+        if (is_link($path) || !is_file($path)) {
+            throw new RuntimeException('Reviewed Git input is not a regular file: ' . $relative);
+        }
+        $files[$relative] = $path;
+    }
+    ksort($files, SORT_STRING);
+    return $files;
+}
+
 function wm_tar_header(string $name, int $size, int $mode, int $mtime): string
 {
     if (strlen($name) > 255 || $name === '' || $name[0] === '/' || str_contains($name, "\\")
@@ -73,22 +112,35 @@ function wm_tar_header(string $name, int $size, int $mode, int $mtime): string
 function wm_write_source_archive(string $path, array $files, int $epoch): void
 {
     ksort($files, SORT_STRING);
-    $tar = '';
-    foreach ($files as $name => $source) {
-        if (is_link($source) || !is_file($source)) { throw new RuntimeException('Source archive member is not a regular file'); }
-        $bytes = file_get_contents($source);
-        if ($bytes === false) { throw new RuntimeException('Cannot read source archive member'); }
-        $tar .= wm_tar_header($name, strlen($bytes), 0644, $epoch) . $bytes
-            . str_repeat("\0", (512 - strlen($bytes) % 512) % 512);
-    }
-    $tar .= str_repeat("\0", 1024);
-    $gzip = gzencode($tar, 9, FORCE_GZIP);
-    if ($gzip === false || file_put_contents($path, $gzip, LOCK_EX) === false) {
-        throw new RuntimeException('Cannot write corresponding source archive');
+    $gzip = gzopen($path, 'wb9');
+    if ($gzip === false) { throw new RuntimeException('Cannot open corresponding source archive'); }
+    try {
+        foreach ($files as $name => $source) {
+            if (is_link($source) || !is_file($source)) { throw new RuntimeException('Source archive member is not a regular file'); }
+            $size = filesize($source);
+            $input = fopen($source, 'rb');
+            if ($size === false || $input === false || gzwrite($gzip, wm_tar_header($name, $size, 0644, $epoch)) !== 512) {
+                throw new RuntimeException('Cannot stream source archive member');
+            }
+            while (!feof($input)) {
+                $chunk = fread($input, 1024 * 1024);
+                if ($chunk === false || ($chunk !== '' && gzwrite($gzip, $chunk) !== strlen($chunk))) {
+                    throw new RuntimeException('Cannot stream source archive member');
+                }
+            }
+            fclose($input);
+            $padding = (512 - $size % 512) % 512;
+            if ($padding && gzwrite($gzip, str_repeat("\0", $padding)) !== $padding) {
+                throw new RuntimeException('Cannot write source archive padding');
+            }
+        }
+        if (gzwrite($gzip, str_repeat("\0", 1024)) !== 1024) { throw new RuntimeException('Cannot finish source archive'); }
+    } finally {
+        gzclose($gzip);
     }
 }
 
-function wm_build_corresponding_source(string $assembled, string $sourceLock, string $sources, string $output): array
+function wm_build_corresponding_source(string $assembled, string $sourceLock, string $sources, string $signature, string $output): array
 {
     if (posix_geteuid() === 0) { throw new RuntimeException('Build as an unprivileged user'); }
     $inputs = wm_json(__DIR__ . '/inputs.json');
@@ -99,19 +151,30 @@ function wm_build_corresponding_source(string $assembled, string $sourceLock, st
     wm_source_audit("$assembled/payload", $sourceLock, $sources, $auditPath);
     $audit = wm_json($auditPath);
     $sourceInventorySha256 = hash_file('sha256', $auditPath);
+    if (is_link($signature) || !is_file($signature)) { throw new RuntimeException('Payload manifest signature is absent'); }
+    $gitCommit = trim((string)shell_exec('git -C ' . escapeshellarg(dirname(__DIR__)) . ' rev-parse HEAD 2>/dev/null'));
+    if (!preg_match('/^[a-f0-9]{40}$/D', $gitCommit)) { throw new RuntimeException('Cannot identify source revision'); }
 
     $prefix = $releaseId;
     $files = [];
     foreach (wm_assert_regular_tree("$assembled/payload") as $name => $path) { $files["$prefix/assembled/payload/$name"] = $path; }
     $files["$prefix/assembled/payload-manifest.json"] = "$assembled/payload-manifest.json";
-    foreach (wm_assert_regular_tree(__DIR__) as $name => $path) { $files["$prefix/distribution/$name"] = $path; }
-    foreach (['shcp_sso', 'shcp_password', 'shcp_dav'] as $plugin) {
-        foreach (wm_assert_regular_tree(dirname(__DIR__) . "/plugins/$plugin") as $name => $path) {
-            $files["$prefix/plugins/$plugin/$name"] = $path;
-        }
+    $files["$prefix/assembled/payload-manifest.json.asc"] = $signature;
+    $repository = dirname(__DIR__);
+    $reviewed = wm_reviewed_git_files($repository, ['distribution', 'plugins/shcp_sso', 'plugins/shcp_password', 'plugins/shcp_dav', 'jsdeps.json']);
+    foreach ($reviewed as $name => $path) {
+        $files["$prefix/$name"] = $path;
     }
     $files["$prefix/source-lock.json"] = $sourceLock;
     $files["$prefix/source-inventory.json"] = $auditPath;
+    $provenancePath = $output . '.provenance.json';
+    wm_write_json($provenancePath, ['format' => 1, 'release_id' => $releaseId,
+        'version' => (string)$inputs['version'], 'revision' => (int)$inputs['revision'],
+        'source_date_epoch' => (int)$inputs['source_date_epoch'], 'git_commit' => $gitCommit,
+        'payload_manifest_sha256' => hash_file('sha256', "$assembled/payload-manifest.json"),
+        'source_inventory_sha256' => $sourceInventorySha256,
+        'source_lock_sha256' => hash_file('sha256', $sourceLock)]);
+    $files["$prefix/archive-provenance.json"] = $provenancePath;
     foreach ($audit['components'] ?? [] as $component) {
         foreach (['source', 'notice'] as $kind) {
             $name = $component[$kind]['file'] ?? '';
@@ -129,8 +192,7 @@ function wm_build_corresponding_source(string $assembled, string $sourceLock, st
     wm_write_source_archive($output, $files, (int)$inputs['source_date_epoch']);
     unlink($auditPath);
     unlink($inventoryPath);
-    $gitCommit = trim((string)shell_exec('git -C ' . escapeshellarg(dirname(__DIR__)) . ' rev-parse HEAD 2>/dev/null'));
-    if (!preg_match('/^[a-f0-9]{40}$/D', $gitCommit)) { throw new RuntimeException('Cannot identify source revision'); }
+    unlink($provenancePath);
     return ['format' => 1, 'release_id' => $releaseId, 'package_name' => 'shcp-webmail',
         'version' => (string)$inputs['version'], 'revision' => (int)$inputs['revision'],
         'source_date_epoch' => (int)$inputs['source_date_epoch'],
@@ -177,15 +239,16 @@ function wm_validate_locator(array $locator): void
 
 if (realpath($_SERVER['SCRIPT_FILENAME']) === __FILE__) {
     try {
-        if ($argc !== 6 || !($assembled = realpath($argv[1])) || !($lock = realpath($argv[2]))
-            || !($sources = realpath($argv[3])) || $argv[4] !== '--output' || $argv[5][0] !== '/') {
-            throw new RuntimeException('usage: corresponding-source.php ASSEMBLED SOURCE_LOCK SOURCES --output ABSOLUTE_ARCHIVE');
+        if ($argc !== 7 || !($assembled = realpath($argv[1])) || !($lock = realpath($argv[2]))
+            || !($sources = realpath($argv[3])) || !($signature = realpath($argv[4]))
+            || $argv[5] !== '--output' || $argv[6][0] !== '/') {
+            throw new RuntimeException('usage: corresponding-source.php ASSEMBLED SOURCE_LOCK SOURCES SIGNATURE --output ABSOLUTE_ARCHIVE');
         }
         $expected = wm_source_filename((string)wm_json(__DIR__ . '/inputs.json')['release_id']);
-        if (basename($argv[5]) !== $expected || file_exists($argv[5]) || is_link($argv[5])) {
+        if (basename($argv[6]) !== $expected || file_exists($argv[6]) || is_link($argv[6])) {
             throw new RuntimeException('Source output name is noncanonical or already exists');
         }
-        $locator = wm_build_corresponding_source($assembled, $lock, $sources, $argv[5]);
+        $locator = wm_build_corresponding_source($assembled, $lock, $sources, $signature, $argv[6]);
         wm_validate_locator($locator);
         echo json_encode($locator, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR), "\n";
     } catch (Throwable $error) {

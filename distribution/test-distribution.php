@@ -50,6 +50,22 @@ try {
     rejected(fn() => wm_write_source_archive("$tmp/link.tar.gz", ['release/link' => "$tmp/source-link"], 1789776000), 'source archive rejects links');
     unlink("$tmp/source-link");
 
+    mkdir("$tmp/reviewed/distribution", 0777, true);
+    mkdir("$tmp/reviewed/plugins/shcp_sso", 0777, true);
+    file_put_contents("$tmp/reviewed/distribution/build.php", "reviewed\n");
+    file_put_contents("$tmp/reviewed/plugins/shcp_sso/plugin.php", "reviewed\n");
+    exec('git -C ' . escapeshellarg("$tmp/reviewed") . ' init -q');
+    exec('git -C ' . escapeshellarg("$tmp/reviewed") . ' add distribution plugins');
+    exec('git -C ' . escapeshellarg("$tmp/reviewed")
+        . ' -c user.name=Test -c user.email=test@example.invalid commit -qm reviewed');
+    $reviewed = wm_reviewed_git_files("$tmp/reviewed", ['distribution', 'plugins/shcp_sso']);
+    check(array_keys($reviewed) === ['distribution/build.php', 'plugins/shcp_sso/plugin.php'], 'source recipes are selected from Git tracked files');
+    file_put_contents("$tmp/reviewed/distribution/credentials.env", "secret\n");
+    rejected(fn() => wm_reviewed_git_files("$tmp/reviewed", ['distribution', 'plugins/shcp_sso']), 'untracked relevant source input blocks archive creation');
+    unlink("$tmp/reviewed/distribution/credentials.env");
+    file_put_contents("$tmp/reviewed/plugins/shcp_sso/plugin.php", "dirty\n");
+    rejected(fn() => wm_reviewed_git_files("$tmp/reviewed", ['distribution', 'plugins/shcp_sso']), 'dirty reviewed source input blocks archive creation');
+
     $releaseId = 'webmail-1.6.19-shcp.1';
     $filename = wm_source_filename($releaseId);
     check($filename === 'webmail-1.6.19-shcp.1-source.tar.gz', 'source filename uses the full downstream release id');
