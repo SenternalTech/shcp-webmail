@@ -29,7 +29,11 @@ function wm_unpack(string $archive, string $destination, array $input): void
         throw new RuntimeException('Input digest mismatch: ' . basename($archive));
     }
     $tar = new PharData($archive);
-    $base = 'phar://' . $archive . '/';
+    $resolvedArchive = realpath($archive);
+    if ($resolvedArchive === false || is_link($archive)) {
+        throw new RuntimeException('Archive input is not a regular resolved file');
+    }
+    $base = 'phar://' . $resolvedArchive . '/';
     $members = new RecursiveIteratorIterator($tar, RecursiveIteratorIterator::SELF_FIRST);
     foreach ($members as $entry) {
         $path = $entry->getPathname();

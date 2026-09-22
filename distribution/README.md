@@ -22,8 +22,20 @@ native packager (`dpkg-deb` or `rpmbuild`). Run builds as an unprivileged user.
    the payload manifest. Public CI cannot perform this step.
 5. Run `distribution/package.sh deb|rpm ASSEMBLED SOURCE_LOCK SOURCES SIGNATURE OUTPUT`.
    It checks the detached manifest signature and payload, generates notices,
-   and builds an inert all/noarch package. It refuses to replace an existing
-   output version. Package signing and repository promotion remain separate.
+   creates the deterministic complete-source archive and canonical release-set
+   metadata, and builds an inert all/noarch package. Both package formats embed
+   `/usr/share/shcp-webmail/corresponding-source.json` and a human-readable
+   source pointer. It refuses to replace an existing output version. Package
+   signing and repository promotion remain separate.
+
+The source artifact is named from the complete downstream release ID (for
+example `webmail-1.6.19-shcp.1-source.tar.gz`). It contains the exact patched
+assembled tree, payload manifest, audited preferred source and notice inputs,
+source lock and inventory, SHCP plugin source, patches, and distribution build
+recipes. Its release-set metadata fixes the immutable public URL under
+`https://repo.shcp.dev/sources/shcp-webmail/`; packages contain no package
+digest, avoiding a self-referential hash. Publication tooling adds native
+package records to the external release set after both formats are built.
 
 The package owns only `/usr/share/shcp-webmail/` and its documentation. It has
 no activation script, service restart, database migration or runtime download.

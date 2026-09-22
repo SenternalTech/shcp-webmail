@@ -11,6 +11,14 @@ umask 022
 stage="$scratch/stage"
 mkdir -p "$stage/usr/share/shcp-webmail" "$stage/usr/share/doc/shcp-webmail" "$output"
 php "$here/source-audit.php" "$assembled/payload" "$source_lock" "$sources" "$scratch/source-inventory.json"
+release_id=$(jq -er '.release_id' "$here/inputs.json")
+source_filename="${release_id}-source.tar.gz"
+php "$here/corresponding-source.php" "$assembled" "$source_lock" "$sources" --output "$scratch/$source_filename" >"$scratch/release-set.json"
+jq -e --arg release_id "$release_id" --arg filename "$source_filename" '
+  .format == 1 and .release_id == $release_id and .package_name == "shcp-webmail" and
+  .source.filename == $filename and .source.url == ("https://repo.shcp.dev/sources/shcp-webmail/" + $release_id + "/" + $filename) and
+  (.source.sha256 | test("^[a-f0-9]{64}$")) and (.source.size | type == "number" and . > 0)
+' "$scratch/release-set.json" >/dev/null
 # Public PR CI has no release signing key and cannot pass this gate.
 gpgv --status-fd 1 --keyring /usr/share/keyrings/shcp-release-keyring.gpg \
     "$signature" "$assembled/payload-manifest.json" >"$scratch/signature-status"
@@ -20,6 +28,9 @@ cp -a "$assembled/payload" "$stage/usr/share/shcp-webmail/payload"
 install -m 0644 "$assembled/payload-manifest.json" "$stage/usr/share/shcp-webmail/payload-manifest.json"
 install -m 0644 "$signature" "$stage/usr/share/shcp-webmail/payload-manifest.json.asc"
 install -m 0644 "$scratch/source-inventory.json" "$stage/usr/share/shcp-webmail/source-inventory.json"
+jq '{format, release_id, source}' "$scratch/release-set.json" >"$stage/usr/share/shcp-webmail/corresponding-source.json"
+jq -r '"Corresponding source for " + .release_id + ":\n" + .source.url + "\nSHA-256: " + .source.sha256 + "\nSize: " + (.source.size | tostring) + " bytes"' \
+    "$scratch/release-set.json" >"$stage/usr/share/doc/shcp-webmail/CORRESPONDING-SOURCE"
 php "$here/notices.php" "$scratch/source-inventory.json" "$sources" >"$stage/usr/share/doc/shcp-webmail/copyright"
 version=$(jq -er '.version' "$here/inputs.json")
 revision=$(jq -er '.revision' "$here/inputs.json")
@@ -66,8 +77,23 @@ EOF
     artifact="shcp-webmail-${version}-${revision}.shcp.noarch.rpm"
     mv "$scratch/rpm/RPMS/noarch/$artifact" "$scratch/$artifact"
 fi
-# Exclusive publication within the local output directory; never replace a
-# previously built version. This does not upload or publish a repository.
+# Source and release metadata are versioned outputs, but are common to both
+# package formats. Publish them first; a second format must reproduce them
+# byte-for-byte. This remains only a local output operation, not an upload.
+for common in "$source_filename" "${release_id}-release-set.json"; do
+    candidate="$scratch/$common"
+    [[ "$common" == *-release-set.json ]] && candidate="$scratch/release-set.json"
+    if [[ -e "$output/$common" ]]; then
+        cmp -s "$candidate" "$output/$common" || { echo "conflicting release output: $common" >&2; exit 1; }
+    else
+        published=$(mktemp "$output/.candidate.XXXXXX")
+        cp "$candidate" "$published"
+        if ! ln "$published" "$output/$common"; then rm -f "$published"; exit 1; fi
+        rm -f "$published"
+    fi
+done
+# Exclusive package publication within the local output directory; never
+# replace a previously built version.
 staged=$(mktemp "$output/.candidate.XXXXXX")
 cp "$scratch/$artifact" "$staged"
 if ! ln "$staged" "$output/$artifact"; then rm -f "$staged"; exit 1; fi
