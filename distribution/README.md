@@ -63,6 +63,13 @@ databases must never be added to this source tree. The deployment explicitly
 loads `shcp_dav` before `carddav`. Calendar compatibility is not part of this
 contacts release.
 
+Removing a webmail user runs `bin/deluser.sh`, which purges that user's managed
+contacts cache through the plugin's `user_delete_prepare` hook. An administrative
+deletion that bypasses that script runs `php plugins/shcp_dav/purge.php
+<user_id|username>` first; the database refuses the deletion otherwise. Purge is
+resumable - re-run it after an interrupted run - and the account and address book
+identifiers it releases are never handed to a later user.
+
 Run the build-boundary checks with `php distribution/test-distribution.php` and
 the producer/finalizer seam check with `distribution/test-release-finalization.sh`.
 Recipients can extract the source archive and rebuild both formats without Git,
