@@ -1,8 +1,10 @@
 name: browser_tests
 
+# Browser tests are an upstream diagnostic suite. They are intentionally manual:
+# the full desktop/tablet run takes hours on GitHub-hosted runners and is not a
+# release gate for SHCP's distribution-only integration changes.
 on:
-  push:
-  pull_request:
+  workflow_dispatch:
 
 jobs:
   browser_tests:

@@ -2,6 +2,17 @@ Roundcube Webmail
 =================
 [roundcube.net](https://roundcube.net)
 
+SHCP downstream source and licensing
+------------------------------------
+SHCP's public packages preserve the licenses and notices of Roundcube,
+rcmcarddav, and their dependencies. Every downstream package identifies a
+complete corresponding-source archive for its exact SHCP release, including
+the patched assembled source, preferred upstream source inputs, notices,
+patches, and reproducible build recipes. The archive's immutable URL, SHA-256,
+and size are installed in machine-readable and human-readable form. SHCP's MIT
+integration plugins remain separately licensed; no proprietary panel source,
+credentials, signing keys, or deployment secrets are included.
+
 [![Tests Status](https://github.com/roundcube/roundcubemail/actions/workflows/tests.yml/badge.svg?branch=master)](https://github.com/roundcube/roundcubemail/actions/workflows/tests.yml)
 
 
