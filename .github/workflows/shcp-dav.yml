@@ -2,6 +2,11 @@
 # SC-737: run the shcp_dav anti-reuse proof (tests/shcp-dav/bindings.php)
 # against the pinned rcmcarddav release, so a regression in
 # plugins/shcp_dav/lib/Bindings.php cannot merge green.
+#
+# Refs shcp-master#2148: the user_delete_prepare hook wiring in shcp_dav.php
+# was review-only. The userdelete job assembles the pinned Roundcube runtime and
+# proves that the hook bin/deluser.sh fires reaches shcp_dav and purges/fences
+# the managed DAV cache, so the deletion can proceed.
 name: shcp-dav bindings
 
 on:
@@ -44,3 +49,58 @@ jobs:
 
       - name: Run the bindings proof
         run: php tests/shcp-dav/bindings.php "$CARDDAV_DIR"
+
+  userdelete:
+    runs-on: ubuntu-latest
+    name: shcp_dav user_delete_prepare hook wiring (shcp-master#2148)
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          extensions: dom, curl, fileinfo, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite, gd, intl
+          coverage: none
+
+      # Assemble the exact runtime that ships: the pinned Roundcube complete tarball
+      # (its vendor/ is already installed) plus the pinned rcmcarddav, both taken from
+      # distribution/inputs.json so the test cannot drift from what the build packages.
+      - name: Assemble the pinned Roundcube + rcmcarddav runtime
+        run: |
+          set -euo pipefail
+          rc_url=$(jq -er '.roundcube.url' distribution/inputs.json)
+          rc_sha=$(jq -er '.roundcube.sha256' distribution/inputs.json)
+          rc_pfx=$(jq -er '.roundcube.prefix' distribution/inputs.json)
+          cv_url=$(jq -er '.carddav.url' distribution/inputs.json)
+          cv_sha=$(jq -er '.carddav.sha256' distribution/inputs.json)
+          cv_pfx=$(jq -er '.carddav.prefix' distribution/inputs.json)
+          work="$RUNNER_TEMP/rc-runtime"; mkdir -p "$work"
+          curl -fsSL --retry 3 -o "$work/rc.tgz" "$rc_url"
+          echo "${rc_sha}  $work/rc.tgz" | sha256sum -c -
+          curl -fsSL --retry 3 -o "$work/cv.tgz" "$cv_url"
+          echo "${cv_sha}  $work/cv.tgz" | sha256sum -c -
+          tar -xzf "$work/rc.tgz" -C "$work"
+          tar -xzf "$work/cv.tgz" -C "$work"
+          test -f "$work/${cv_pfx}/dbmigrations/INIT-currentschema/sqlite3.sql"
+          echo "RC_DIR=$work/${rc_pfx}" >> "$GITHUB_ENV"
+          echo "CARDDAV_DIR=$work/${cv_pfx}" >> "$GITHUB_ENV"
+
+      - name: Prove the hook wiring
+        run: php tests/shcp-dav/userdelete.php "$RC_DIR" "$CARDDAV_DIR"
+
+      # Green is a claim. Prove the guard has teeth on every run: with the hook
+      # registration removed the test must fail; then restore it and confirm green.
+      - name: Mutation-check the wiring guard
+        run: |
+          set -euo pipefail
+          test "$(grep -c "add_hook('user_delete_prepare'" plugins/shcp_dav/shcp_dav.php)" -ge 1
+          sed -i "/add_hook('user_delete_prepare'/d" plugins/shcp_dav/shcp_dav.php
+          test "$(grep -c "add_hook('user_delete_prepare'" plugins/shcp_dav/shcp_dav.php)" -eq 0
+          if php tests/shcp-dav/userdelete.php "$RC_DIR" "$CARDDAV_DIR"; then
+            echo "MUTATION NOT DETECTED: the test passed with the hook registration removed" >&2
+            exit 1
+          fi
+          git checkout -- plugins/shcp_dav/shcp_dav.php
+          php tests/shcp-dav/userdelete.php "$RC_DIR" "$CARDDAV_DIR"
