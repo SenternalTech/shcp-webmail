@@ -1,0 +1,46 @@
+# SPDX-License-Identifier: MIT
+# SC-737: run the shcp_dav anti-reuse proof (tests/shcp-dav/bindings.php)
+# against the pinned rcmcarddav release, so a regression in
+# plugins/shcp_dav/lib/Bindings.php cannot merge green.
+name: shcp-dav bindings
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  bindings:
+    runs-on: ubuntu-latest
+    name: shcp_dav bindings (SC-737)
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          extensions: pdo, pdo_sqlite
+          coverage: none
+
+      # The fixture URL and digest come from distribution/inputs.json, the same
+      # pin the distribution build uses, so the test cannot drift from what ships.
+      - name: Fetch and verify the pinned rcmcarddav fixture
+        run: |
+          set -euo pipefail
+          url=$(jq -er '.carddav.url' distribution/inputs.json)
+          sha=$(jq -er '.carddav.sha256' distribution/inputs.json)
+          prefix=$(jq -er '.carddav.prefix' distribution/inputs.json)
+          mkdir -p "$RUNNER_TEMP/carddav-fixture"
+          curl -fsSL --retry 3 -o "$RUNNER_TEMP/carddav.tar.gz" "$url"
+          echo "${sha}  $RUNNER_TEMP/carddav.tar.gz" | sha256sum -c -
+          tar -xzf "$RUNNER_TEMP/carddav.tar.gz" -C "$RUNNER_TEMP/carddav-fixture"
+          test -f "$RUNNER_TEMP/carddav-fixture/${prefix}/dbmigrations/INIT-currentschema/sqlite3.sql"
+          echo "CARDDAV_DIR=$RUNNER_TEMP/carddav-fixture/${prefix}" >> "$GITHUB_ENV"
+
+      - name: Run the bindings proof
+        run: php tests/shcp-dav/bindings.php "$CARDDAV_DIR"
