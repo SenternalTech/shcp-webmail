@@ -1,0 +1,55 @@
+# SPDX-License-Identifier: MIT
+# Assemble the payload from the pinned inputs on every change, so a plugin file
+# the assembler does not classify cannot merge green. Refs shcp-master#1981:
+# plugins/shcp_dav/localization/en_US.inc landed after the plugin-input allow
+# list was written, and nothing ran assemble.php until release preparation.
+name: distribution
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  assemble:
+    runs-on: ubuntu-latest
+    name: assemble pinned payload
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.5"
+          extensions: phar
+          coverage: none
+
+      - name: Build-boundary checks
+        run: php distribution/test-distribution.php
+
+      # URLs and digests come from distribution/inputs.json, the same pin the
+      # release build uses; assemble.php re-verifies the digests itself.
+      - name: Fetch the pinned inputs
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/inputs"
+          for k in roundcube carddav; do
+            file=$(jq -er ".$k.file" distribution/inputs.json)
+            url=$(jq -er ".$k.url" distribution/inputs.json)
+            curl -fsSL --retry 3 -o "$RUNNER_TEMP/inputs/$file" "$url"
+          done
+
+      - name: Assemble and inventory
+        run: |
+          set -euo pipefail
+          php distribution/assemble.php "$RUNNER_TEMP/inputs" "$RUNNER_TEMP/assembled"
+          php distribution/source-audit.php --inventory "$RUNNER_TEMP/assembled" > "$RUNNER_TEMP/inventory.json"
+          for c in roundcube/roundcubemail mstilkerich/rcmcarddav shcp/shcp_sso shcp/shcp_password shcp/shcp_dav; do
+            jq -e --arg c "$c" 'keys | any(startswith($c + "@"))' "$RUNNER_TEMP/inventory.json" >/dev/null \
+              || { echo "component missing from inventory: $c" >&2; exit 1; }
+          done
+          jq -r 'to_entries[] | "\(.key)\t\(.value | join(","))"' "$RUNNER_TEMP/inventory.json"

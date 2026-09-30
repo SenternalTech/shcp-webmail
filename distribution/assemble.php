@@ -103,7 +103,7 @@ function wm_copy_plugin(string $root, string $name, string $destination): void
     }
     foreach (wm_inventory($source) as $file => $metadata) {
         if (preg_match('~(^|/)\.|(^|/)(vendor|node_modules)(/|$)~', $file)
-            || (!in_array(pathinfo($file, PATHINFO_EXTENSION), ['php', 'json', 'sql', 'js', 'css', 'md'], true) && $file !== 'LICENSE')) {
+            || (!in_array(pathinfo($file, PATHINFO_EXTENSION), ['php', 'inc', 'json', 'sql', 'js', 'css', 'md'], true) && $file !== 'LICENSE')) {
             throw new RuntimeException('Unclassified plugin input: ' . $file);
         }
         wm_directory(dirname("$destination/$name/$file"));
