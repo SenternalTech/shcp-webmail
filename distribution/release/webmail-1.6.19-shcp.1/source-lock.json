@@ -127,19 +127,6 @@
                 "sha256": "12ac5047f2af0522f06798b1589ffc4599bc29c91f954d7874e0320634e777c0"
             }
         },
-        "asset/tinymce-langs@5.10.9": {
-            "declared_licenses": [
-                "UNDECLARED"
-            ],
-            "license_expression": "",
-            "review": "",
-            "preferred_source": true,
-            "source": {
-                "file": "asset-tinymce-langs-5.10.9-langs.zip",
-                "url": "https://download.tiny.cloud/tinymce/community/languagepacks/5/langs.zip?v=5.10.9",
-                "sha256": "f7feab3ef0d6ff56e8bed42d6cc4c2d226842824007ee1d5bb64194ed99ec162"
-            }
-        },
         "asset/tinymce@5.10.9": {
             "declared_licenses": [
                 "LGPL"
@@ -536,22 +523,22 @@
                 "sha256": "ec12c6a12cf14352c69e85722ee4c74ec722b8adeb5e90e249827a87ae3474de"
             }
         },
-        "pear/net_socket@v1.2.2": {
+        "pear/net_socket@v1.2.1": {
             "declared_licenses": [
-                "PHP License"
+                "BSD-2-Clause"
             ],
-            "license_expression": "LicenseRef-PHP-2.02",
+            "license_expression": "BSD-2-Clause",
             "review": "",
             "preferred_source": true,
             "source": {
-                "file": "pear-net_socket-v1.2.2-src.tar.gz",
-                "url": "https://github.com/pear/Net_Socket/archive/bbe6a12bb4f7059dba161f6ddd43f369c0ec8d09.tar.gz",
-                "sha256": "197c4be043ead865c3dbfca496cffbf9938f23dc0afc703fa4c9e7a34d04bd60"
+                "file": "pear-net_socket-v1.2.1-src.tar.gz",
+                "url": "https://github.com/pear/Net_Socket/archive/f31d75ac352d49908f8987bbb1496c02a409812a.tar.gz",
+                "sha256": "460b147feb955af090c2ea6ecc3ad0c1db708bcd439521fa4886e84b6dba4e59"
             },
             "notice": {
-                "file": "pear-net_socket-v1.2.2-notice-Socket.php",
-                "url": "https://raw.githubusercontent.com/pear/Net_Socket/bbe6a12bb4f7059dba161f6ddd43f369c0ec8d09/Net/Socket.php",
-                "sha256": "535c8e55d510263e6fbd059eb6bd9f598ec57342221c71a841eef8d0d76619b4"
+                "file": "pear-net_socket-v1.2.1-LICENSE",
+                "url": "https://raw.githubusercontent.com/pear/Net_Socket/f31d75ac352d49908f8987bbb1496c02a409812a/LICENSE",
+                "sha256": "2d0da327860072fe4b29f7f0d79c0b72ad770d1fca285eecb0c2ca29c59475b2"
             }
         },
         "pear/pear-core-minimal@v1.10.18": {
@@ -734,24 +721,6 @@
                 "sha256": "8ceb4b9ee5adedde47b31e975c1d90c73ad27b6b165a1dcd80c7c545eb65b903"
             }
         },
-        "roundcube/rtf-html-php@v2.2": {
-            "declared_licenses": [
-                "GPL-2.0"
-            ],
-            "license_expression": "GPL-2.0-only",
-            "review": "",
-            "preferred_source": true,
-            "source": {
-                "file": "roundcube-rtf-html-php-v2.2-src.tar.gz",
-                "url": "https://github.com/roundcube/rtf-html-php/archive/a3432ca249b73bf24fec50114191a63ad8b1478c.tar.gz",
-                "sha256": "72613172f1fba6a44a5af8af08509312e901de735578a9009338e4f185f119dd"
-            },
-            "notice": {
-                "file": "roundcube-rtf-html-php-v2.2-LICENSE",
-                "url": "https://raw.githubusercontent.com/roundcube/rtf-html-php/a3432ca249b73bf24fec50114191a63ad8b1478c/LICENSE",
-                "sha256": "0866dc15d7608b6896f2c8d61158c1daa5c48577517479b207521071eeb7dd4f"
-            }
-        },
         "sabre/uri@2.3.4": {
             "declared_licenses": [
                 "BSD-3-Clause"
@@ -814,13 +783,13 @@
             "review": "",
             "preferred_source": true,
             "source": {
-                "file": "shcp-webmail-9eaf0f113a17-src.tar.gz",
-                "url": "https://github.com/SenternalTech/shcp-webmail/archive/9eaf0f113a17086f93b7b1e6256d4f6280bd79f3.tar.gz",
-                "sha256": "b9467594c4fded011522fff8a93e81d859ebf17b169bb8207fedb60057876acc"
+                "file": "shcp-webmail-f6da7e7f8d3d-src.tar.gz",
+                "url": "https://github.com/SenternalTech/shcp-webmail/archive/f6da7e7f8d3dba0ee8167d5334ab2c661ae4937e.tar.gz",
+                "sha256": "c1b35e0f0152a28e11d51a42c9d1c2d178154f30dbeb67925612ddf3bb395d4f"
             },
             "notice": {
                 "file": "shcp-shcp_dav-1-LICENSE",
-                "url": "https://raw.githubusercontent.com/SenternalTech/shcp-webmail/9eaf0f113a17086f93b7b1e6256d4f6280bd79f3/plugins/shcp_dav/LICENSE",
+                "url": "https://raw.githubusercontent.com/SenternalTech/shcp-webmail/f6da7e7f8d3dba0ee8167d5334ab2c661ae4937e/plugins/shcp_dav/LICENSE",
                 "sha256": "ab2b46c319c2efd09dbe29e28962a50f68f96b9c3af028251857ff94f6d8fe98"
             }
         },
@@ -832,13 +801,13 @@
             "review": "",
             "preferred_source": true,
             "source": {
-                "file": "shcp-webmail-9eaf0f113a17-src.tar.gz",
-                "url": "https://github.com/SenternalTech/shcp-webmail/archive/9eaf0f113a17086f93b7b1e6256d4f6280bd79f3.tar.gz",
-                "sha256": "b9467594c4fded011522fff8a93e81d859ebf17b169bb8207fedb60057876acc"
+                "file": "shcp-webmail-f6da7e7f8d3d-src.tar.gz",
+                "url": "https://github.com/SenternalTech/shcp-webmail/archive/f6da7e7f8d3dba0ee8167d5334ab2c661ae4937e.tar.gz",
+                "sha256": "c1b35e0f0152a28e11d51a42c9d1c2d178154f30dbeb67925612ddf3bb395d4f"
             },
             "notice": {
                 "file": "shcp-shcp_password-1-LICENSE",
-                "url": "https://raw.githubusercontent.com/SenternalTech/shcp-webmail/9eaf0f113a17086f93b7b1e6256d4f6280bd79f3/plugins/shcp_password/LICENSE",
+                "url": "https://raw.githubusercontent.com/SenternalTech/shcp-webmail/f6da7e7f8d3dba0ee8167d5334ab2c661ae4937e/plugins/shcp_password/LICENSE",
                 "sha256": "e7485bf312f2bb09620515443dd23ec37092a42996e533074832d3c0a424507c"
             }
         },
@@ -850,13 +819,13 @@
             "review": "",
             "preferred_source": true,
             "source": {
-                "file": "shcp-webmail-9eaf0f113a17-src.tar.gz",
-                "url": "https://github.com/SenternalTech/shcp-webmail/archive/9eaf0f113a17086f93b7b1e6256d4f6280bd79f3.tar.gz",
-                "sha256": "b9467594c4fded011522fff8a93e81d859ebf17b169bb8207fedb60057876acc"
+                "file": "shcp-webmail-f6da7e7f8d3d-src.tar.gz",
+                "url": "https://github.com/SenternalTech/shcp-webmail/archive/f6da7e7f8d3dba0ee8167d5334ab2c661ae4937e.tar.gz",
+                "sha256": "c1b35e0f0152a28e11d51a42c9d1c2d178154f30dbeb67925612ddf3bb395d4f"
             },
             "notice": {
                 "file": "shcp-shcp_sso-1-LICENSE",
-                "url": "https://raw.githubusercontent.com/SenternalTech/shcp-webmail/9eaf0f113a17086f93b7b1e6256d4f6280bd79f3/plugins/shcp_sso/LICENSE",
+                "url": "https://raw.githubusercontent.com/SenternalTech/shcp-webmail/f6da7e7f8d3dba0ee8167d5334ab2c661ae4937e/plugins/shcp_sso/LICENSE",
                 "sha256": "ab2b46c319c2efd09dbe29e28962a50f68f96b9c3af028251857ff94f6d8fe98"
             }
         },
