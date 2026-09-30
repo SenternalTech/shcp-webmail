@@ -122,6 +122,75 @@ function wm_process(array $command, string $cwd): void
     }
 }
 
+// Removes ordinary files only; the verified extraction rejected links and
+// special entries.
+function wm_remove_tree(string $path): void
+{
+    $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($path, FilesystemIterator::SKIP_DOTS), RecursiveIteratorIterator::CHILD_FIRST);
+    foreach ($iterator as $entry) {
+        $entry->isDir() ? rmdir($entry->getPathname()) : unlink($entry->getPathname());
+    }
+    rmdir($path);
+}
+
+// Rewrites the payload's Composer metadata, which the source audit reads to
+// decide what ships. Exactly one entry must match, or the input set changed.
+function wm_installed_package(string $payload, string $package, ?callable $edit): void
+{
+    $path = "$payload/vendor/composer/installed.json";
+    $installed = wm_json($path);
+    $matches = array_keys(array_filter($installed['packages'], fn($entry) => $entry['name'] === $package));
+    if (count($matches) !== 1) {
+        throw new RuntimeException('Composer metadata does not identify ' . $package);
+    }
+    if ($edit === null) {
+        array_splice($installed['packages'], $matches[0], 1);
+    } else {
+        $installed['packages'][$matches[0]] = $edit($installed['packages'][$matches[0]]);
+    }
+    wm_write_json($path, $installed);
+}
+
+function wm_substitute_package(string $inputs, string $output, string $payload, array $input): void
+{
+    $target = "$payload/{$input['path']}";
+    wm_installed_package($payload, $input['package'], function (array $entry) use ($input): array {
+        if ($entry['version'] !== $input['replaces']) {
+            throw new RuntimeException('Substitution no longer matches upstream: ' . $input['package'] . '@' . $entry['version']);
+        }
+        $entry['version'] = $input['version'];
+        $entry['version_normalized'] = ltrim($input['version'], 'v') . '.0';
+        $entry['dist']['url'] = str_replace($entry['dist']['reference'], $input['reference'], $entry['dist']['url']);
+        $entry['source']['reference'] = $entry['dist']['reference'] = $input['reference'];
+        $entry['time'] = $input['time'];
+        $entry['license'] = $input['license'];
+        return $entry;
+    });
+    $scratch = "$output/substitute";
+    wm_directory($scratch);
+    wm_unpack("$inputs/{$input['file']}", $scratch, $input);
+    wm_remove_tree($target);
+    foreach ($input['files'] as $file) {
+        wm_directory(dirname("$target/$file"));
+        if (!is_file("$scratch/$file") || !copy("$scratch/$file", "$target/$file")) {
+            throw new RuntimeException('Substitute file absent: ' . $file);
+        }
+        chmod("$target/$file", 0644);
+    }
+    wm_remove_tree($scratch);
+}
+
+function wm_omit(string $payload, string $component, array $omission): void
+{
+    if (!is_dir("$payload/{$omission['path']}")) {
+        throw new RuntimeException('Omitted component is not in the upstream payload: ' . $component);
+    }
+    wm_remove_tree("$payload/{$omission['path']}");
+    if (isset($omission['package'])) {
+        wm_installed_package($payload, $omission['package'], null);
+    }
+}
+
 function wm_assemble(string $inputs, string $output): void
 {
     if (posix_geteuid() === 0) {
@@ -149,6 +218,10 @@ function wm_assemble(string $inputs, string $output): void
         wm_process(['git', 'apply', '--check', __DIR__ . '/patches/' . $patch], "$payload/plugins/carddav");
         wm_process(['git', 'apply', __DIR__ . '/patches/' . $patch], "$payload/plugins/carddav");
     }
+    wm_substitute_package($inputs, $output, $payload, $lock['net_socket']);
+    foreach ($lock['omit'] as $component => $omission) {
+        wm_omit($payload, $component, $omission);
+    }
     foreach (['shcp_sso', 'shcp_password', 'shcp_dav'] as $plugin) {
         wm_copy_plugin($root, $plugin, "$payload/plugins");
     }
@@ -161,13 +234,8 @@ function wm_assemble(string $inputs, string $output): void
     foreach ($loaders as $file => $external) {
         file_put_contents("$payload/$file", "<?php\nrequire '/etc/shcp-roundcube/$external';\n");
     }
-    // The upstream installer is not served. Remove its ordinary files only;
-    // the verified extraction above rejected links and special entries.
-    $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator("$payload/installer", FilesystemIterator::SKIP_DOTS), RecursiveIteratorIterator::CHILD_FIRST);
-    foreach ($iterator as $entry) {
-        $entry->isDir() ? rmdir($entry->getPathname()) : unlink($entry->getPathname());
-    }
-    rmdir("$payload/installer");
+    // The upstream installer is not served.
+    wm_remove_tree("$payload/installer");
     wm_write_json("$output/payload-manifest.json", ['format' => 1, 'release_id' => $lock['release_id'],
         'roundcube_version' => $lock['version'], 'carddav_version' => '5.1.3',
         'protocols' => ['panel_dav' => 1, 'installer_webmail' => 1, 'updater_webmail' => 1],

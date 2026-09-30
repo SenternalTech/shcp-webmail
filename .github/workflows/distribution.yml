@@ -37,7 +37,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p "$RUNNER_TEMP/inputs"
-          for k in roundcube carddav; do
+          for k in roundcube carddav net_socket; do
             file=$(jq -er ".$k.file" distribution/inputs.json)
             url=$(jq -er ".$k.url" distribution/inputs.json)
             curl -fsSL --retry 3 -o "$RUNNER_TEMP/inputs/$file" "$url"
@@ -47,9 +47,43 @@ jobs:
         run: |
           set -euo pipefail
           php distribution/assemble.php "$RUNNER_TEMP/inputs" "$RUNNER_TEMP/assembled"
-          php distribution/source-audit.php --inventory "$RUNNER_TEMP/assembled" > "$RUNNER_TEMP/inventory.json"
+          payload="$RUNNER_TEMP/assembled/payload"
+          inventory="$RUNNER_TEMP/inventory.json"
+          php distribution/source-audit.php --inventory "$payload" > "$inventory"
           for c in roundcube/roundcubemail mstilkerich/rcmcarddav shcp/shcp_sso shcp/shcp_password shcp/shcp_dav; do
-            jq -e --arg c "$c" 'keys | any(startswith($c + "@"))' "$RUNNER_TEMP/inventory.json" >/dev/null \
+            jq -e --arg c "$c" 'keys | any(startswith($c + "@"))' "$inventory" >/dev/null \
               || { echo "component missing from inventory: $c" >&2; exit 1; }
           done
-          jq -r 'to_entries[] | "\(.key)\t\(.value | join(","))"' "$RUNNER_TEMP/inventory.json"
+          jq -r 'to_entries[] | "\(.key)\t\(.value | join(","))"' "$inventory"
+
+      # Licence adjustments (shcp-master#1981): the substituted net_socket ships
+      # with its BSD-2-Clause grant, and each omitted component is gone from both
+      # the payload and the inventory.
+      - name: Verify licence adjustments
+        run: |
+          set -euo pipefail
+          payload="$RUNNER_TEMP/assembled/payload"
+          inventory="$RUNNER_TEMP/inventory.json"
+          version=$(jq -er '.net_socket.version' distribution/inputs.json)
+          jq -e --arg id "pear/net_socket@$version" '.[$id] == ["BSD-2-Clause"]' "$inventory" >/dev/null \
+            || { echo "net_socket is not the BSD-2-Clause substitute" >&2; exit 1; }
+          # `! cmd` is exempt from set -e, so every negative check exits explicitly.
+          socket="$payload/vendor/pear/net_socket"
+          grep -q 'BSD-2-Clause' "$socket/Net/Socket.php"
+          test -f "$socket/LICENSE"
+          if grep -qi 'PHP license' "$socket/Net/Socket.php"; then
+            echo "net_socket still carries the PHP License header" >&2; exit 1
+          fi
+          jq -r '.omit | to_entries[] | "\(.key)\t\(.value.path)"' distribution/inputs.json > "$RUNNER_TEMP/omit.tsv"
+          test -s "$RUNNER_TEMP/omit.tsv"
+          while IFS=$'\t' read -r id path; do
+            if jq -e --arg id "$id" 'has($id)' "$inventory" >/dev/null; then
+              echo "omitted component inventoried: $id" >&2; exit 1
+            fi
+            if [ -e "$payload/$path" ]; then
+              echo "omitted path shipped: $path" >&2; exit 1
+            fi
+          done < "$RUNNER_TEMP/omit.tsv"
+          if grep -q 'rtf-html-php' "$payload/vendor/composer/installed.json"; then
+            echo "rtf-html-php still in Composer metadata" >&2; exit 1
+          fi
