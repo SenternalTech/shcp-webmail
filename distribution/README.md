@@ -15,6 +15,13 @@ native packager (`dpkg-deb` or `rpmbuild`). Run builds as an unprivileged user.
    installs the MIT plugins and protected external-config loaders, and emits a
    complete payload file manifest. Roundcube 1.6 routing is retained; its optional
    alternate `public_html` symlink tree and browser installer are omitted.
+   Licence adjustments are declared in `inputs.json`, each with its reason,
+   upstream reference and removal condition: `net_socket` substitutes the
+   BSD-2-Clause Net_Socket for the PHP-licensed code upstream's `v1.2.2` tag
+   installs, and `omit` removes components that cannot be conveyed under this
+   distribution's licence (GPL-2.0-only rtf-html-php, unlicensed TinyMCE
+   language packs). Assembly and the source audit both refuse a payload where
+   an omitted component survives.
 3. Audit every observed component with `source-audit.php`. A reviewed source lock,
    preferred editable source archives and their actual notices are mandatory.
    Missing/changed sources or unknown classifications fail the build.

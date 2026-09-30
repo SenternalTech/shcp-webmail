@@ -19,8 +19,19 @@ function wm_components(string $payload): array
             $components[$id] = $licenses;
         }
     }
+    // jsdeps.json lists what upstream fetched, not what survived assembly; an
+    // omitted asset is excluded only once its files are proven absent.
+    $omitted = wm_json(__DIR__ . '/inputs.json')['omit'];
     foreach (wm_json(dirname(__DIR__) . '/jsdeps.json')['dependencies'] as $asset) {
-        $components['asset/' . $asset['lib'] . '@' . $asset['version']] = [$asset['license'] ?? 'UNDECLARED'];
+        $id = 'asset/' . $asset['lib'] . '@' . $asset['version'];
+        if (!isset($omitted[$id])) {
+            $components[$id] = [$asset['license'] ?? 'UNDECLARED'];
+        }
+    }
+    foreach ($omitted as $id => $omission) {
+        if (isset($components[$id]) || file_exists("$payload/{$omission['path']}")) {
+            throw new RuntimeException('Omitted component still in payload: ' . $id);
+        }
     }
     foreach (['shcp_sso', 'shcp_password', 'shcp_dav'] as $plugin) {
         $components['shcp/' . $plugin . '@1'] = ['MIT'];

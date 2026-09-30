@@ -38,6 +38,33 @@ try {
     rejected(fn() => wm_source_audit("$tmp/payload", "$tmp/source-lock.json", $tmp, "$tmp/sources.json"), 'missing component classification blocks source audit');
     check(!file_exists("$tmp/sources.json"), 'failed audit emits no success inventory');
 
+    $omitted = wm_json(__DIR__ . '/inputs.json')['omit'];
+    $langs = $omitted['asset/tinymce-langs@5.10.9']['path'];
+    mkdir("$tmp/omit/$langs", 0755, true);
+    mkdir("$tmp/omit/vendor/composer", 0755, true);
+    file_put_contents("$tmp/omit/$langs/de.js", 'unlicensed');
+    $metadata = "$tmp/omit/vendor/composer/installed.json";
+    $package = fn(string $name, string $version, string $license) => ['name' => $name, 'version' => $version,
+        'source' => ['reference' => 'old'], 'dist' => ['url' => 'https://example.invalid/old', 'reference' => 'old'],
+        'license' => [$license]];
+    $rtf = $package('roundcube/rtf-html-php', 'v2.2', 'GPL-2.0');
+    $stale = $package('pear/net_socket', 'v1.2.2', 'PHP License');
+    wm_write_json($metadata, ['packages' => [$stale]]);
+    rejected(fn() => wm_components("$tmp/omit"), 'omitted asset still on disk blocks the inventory');
+    unlink("$tmp/omit/$langs/de.js");
+    rmdir("$tmp/omit/$langs");
+    check(!array_intersect_key(wm_components("$tmp/omit"), $omitted), 'omitted components leave the inventory');
+    wm_write_json($metadata, ['packages' => [$stale, $rtf]]);
+    rejected(fn() => wm_components("$tmp/omit"), 'omitted package still in Composer metadata blocks the inventory');
+    wm_installed_package("$tmp/omit", 'roundcube/rtf-html-php', null);
+    check(wm_json($metadata)['packages'] === [$stale], 'omission removes exactly the Composer entry');
+    wm_write_json($metadata, ['packages' => [$stale, $stale]]);
+    rejected(fn() => wm_installed_package("$tmp/omit", 'pear/net_socket', fn($entry) => $entry), 'Composer edit refuses an ambiguous package');
+    wm_write_json($metadata, ['packages' => [$stale]]);
+    $socket = wm_json(__DIR__ . '/inputs.json')['net_socket'];
+    rejected(fn() => wm_substitute_package($tmp, $tmp, "$tmp/omit", ['replaces' => 'v1.2.3'] + $socket), 'substitution refuses an unexpected upstream version');
+    check(wm_json($metadata)['packages'] === [$stale], 'refused substitution leaves Composer metadata unchanged');
+
     file_put_contents("$tmp/member", "deterministic bytes\n");
     $members = ['webmail-1.6.19-shcp.1/member' => "$tmp/member"];
     wm_write_source_archive("$tmp/one.tar.gz", $members, 1789776000);
