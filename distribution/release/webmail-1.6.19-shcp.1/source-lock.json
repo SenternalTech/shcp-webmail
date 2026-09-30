@@ -1,0 +1,900 @@
+{
+    "format": 1,
+    "components": {
+        "asset/bootstrap@4.5.3": {
+            "declared_licenses": [
+                "MIT"
+            ],
+            "license_expression": "MIT",
+            "review": "",
+            "preferred_source": true,
+            "source": {
+                "file": "asset-bootstrap-4.5.3-src.tar.gz",
+                "url": "https://github.com/twbs/bootstrap/archive/a716fb03f965dc0846df479e14388b1b4b93d7ce.tar.gz",
+                "sha256": "457a0a16116d664fc4430aea617f5cb6deacb9700433a6d5e0b738a25188816c"
+            },
+            "notice": {
+                "file": "asset-bootstrap-4.5.3-LICENSE",
+                "url": "https://raw.githubusercontent.com/twbs/bootstrap/a716fb03f965dc0846df479e14388b1b4b93d7ce/LICENSE",
+                "sha256": "9b2ce2d9793f14f0fb1a77ce64961acc1157fb25858156c47139491107970acb"
+            }
+        },
+        "asset/codemirror@5.58.3": {
+            "declared_licenses": [
+                "MIT"
+            ],
+            "license_expression": "MIT",
+            "review": "",
+            "preferred_source": true,
+            "source": {
+                "file": "asset-codemirror-5.58.3-src.tar.gz",
+                "url": "https://github.com/codemirror/codemirror5/archive/a53e86069bc06410ff477a8a5849a5abd26f983a.tar.gz",
+                "sha256": "79a0a2dda033c10db261e8b22331ead2db47533238110b121656cb94585ff530"
+            },
+            "notice": {
+                "file": "asset-codemirror-5.58.3-LICENSE",
+                "url": "https://raw.githubusercontent.com/codemirror/codemirror5/a53e86069bc06410ff477a8a5849a5abd26f983a/LICENSE",
+                "sha256": "a3f2fe2ac6b471aa80c737c5d283dd049bdc903a73835ee6d4d2cac02fdd53bf"
+            }
+        },
+        "asset/jquery@3.5.1": {
+            "declared_licenses": [
+                "MIT"
+            ],
+            "license_expression": "MIT",
+            "review": "",
+            "preferred_source": true,
+            "source": {
+                "file": "asset-jquery-3.5.1-src.tar.gz",
+                "url": "https://github.com/jquery/jquery/archive/e1cffdef277fcf543833a20d28cbadcd000ebece.tar.gz",
+                "sha256": "38d0648f7f8f97c870e59d8d5c6f4893195ec1c9798c40ef9aeee77bbcc47e60"
+            },
+            "notice": {
+                "file": "asset-jquery-3.5.1-LICENSE.txt",
+                "url": "https://raw.githubusercontent.com/jquery/jquery/e1cffdef277fcf543833a20d28cbadcd000ebece/LICENSE.txt",
+                "sha256": "1ff603118efdb313799567cb4a408594954384f40843ca6f29c596f5b1f8907d"
+            }
+        },
+        "asset/jstz@1.0.7": {
+            "declared_licenses": [
+                "MIT"
+            ],
+            "license_expression": "MIT",
+            "review": "",
+            "preferred_source": true,
+            "source": {
+                "file": "asset-jstz-1.0.7-jstz.js",
+                "url": "https://cdnjs.cloudflare.com/ajax/libs/jstimezonedetect/1.0.7/jstz.js",
+                "sha256": "4323ac38f342b0b7b1eee332e7278c67f4d01fe21c35ab03a684d49679a4feee"
+            },
+            "notice": {
+                "file": "asset-jstz-1.0.7-LICENSE.txt",
+                "url": "https://raw.githubusercontent.com/pellepim/jstimezonedetect/0508acd36d5243a9215ee99ac2cb0d723c2fef4e/LICENCE.txt",
+                "sha256": "70e94d1525a9cfeaec737aef0d21391b8585420add847742647cf1d916957555"
+            }
+        },
+        "asset/less@3.13.0": {
+            "declared_licenses": [
+                "Apache-2.0"
+            ],
+            "license_expression": "Apache-2.0",
+            "review": "",
+            "preferred_source": true,
+            "source": {
+                "file": "asset-less-3.13.0-src.tar.gz",
+                "url": "https://github.com/less/less.js/archive/257efdd6884268af27beaceda467fd3a4aea5e08.tar.gz",
+                "sha256": "dcf46e6ffbac1a4ca71decc87c371431f3869eaf2bd7d4a5fdf7797321071937"
+            },
+            "notice": {
+                "file": "asset-less-3.13.0-LICENSE",
+                "url": "https://raw.githubusercontent.com/less/less.js/257efdd6884268af27beaceda467fd3a4aea5e08/LICENSE",
+                "sha256": "39445b459f86621683f9731fb6a7d070819dc379840e8ef52f62bb1c68942291"
+            }
+        },
+        "asset/openpgp@5.0.0": {
+            "declared_licenses": [
+                "LGPL"
+            ],
+            "license_expression": "LGPL-3.0-or-later",
+            "review": "",
+            "preferred_source": true,
+            "source": {
+                "file": "asset-openpgp-5.0.0-src.tar.gz",
+                "url": "https://github.com/openpgpjs/openpgpjs/archive/acafb2866128d11dd55b7d0927957cd3880c7422.tar.gz",
+                "sha256": "3c75001fde7cc88e8924e612b12aa3a3844a73175321d043c67ab2bd0fc8af65"
+            },
+            "notice": {
+                "file": "asset-openpgp-5.0.0-LICENSE",
+                "url": "https://raw.githubusercontent.com/openpgpjs/openpgpjs/acafb2866128d11dd55b7d0927957cd3880c7422/LICENSE",
+                "sha256": "e3a994d82e644b03a792a930f574002658412f62407f5fee083f2555c5f23118"
+            }
+        },
+        "asset/publickey@0e011cb1": {
+            "declared_licenses": [
+                "GPLv3"
+            ],
+            "license_expression": "GPL-3.0-only",
+            "review": "",
+            "preferred_source": true,
+            "source": {
+                "file": "asset-publickey-0e011cb1-src.tar.gz",
+                "url": "https://github.com/diafygi/publickeyjs/archive/0e011cb18907a1adc0313aa92e69cd8858e1ef66.tar.gz",
+                "sha256": "e7236a671f73865162a440c762ba4bef0cb959a486f863678678cb7f1bc55000"
+            },
+            "notice": {
+                "file": "asset-publickey-0e011cb1-LICENSE",
+                "url": "https://raw.githubusercontent.com/diafygi/publickeyjs/0e011cb18907a1adc0313aa92e69cd8858e1ef66/LICENSE",
+                "sha256": "12ac5047f2af0522f06798b1589ffc4599bc29c91f954d7874e0320634e777c0"
+            }
+        },
+        "asset/tinymce-langs@5.10.9": {
+            "declared_licenses": [
+                "UNDECLARED"
+            ],
+            "license_expression": "",
+            "review": "",
+            "preferred_source": true,
+            "source": {
+                "file": "asset-tinymce-langs-5.10.9-langs.zip",
+                "url": "https://download.tiny.cloud/tinymce/community/languagepacks/5/langs.zip?v=5.10.9",
+                "sha256": "f7feab3ef0d6ff56e8bed42d6cc4c2d226842824007ee1d5bb64194ed99ec162"
+            }
+        },
+        "asset/tinymce@5.10.9": {
+            "declared_licenses": [
+                "LGPL"
+            ],
+            "license_expression": "LGPL-2.1-only",
+            "review": "",
+            "preferred_source": true,
+            "source": {
+                "file": "asset-tinymce-5.10.9-src.tar.gz",
+                "url": "https://github.com/tinymce/tinymce/archive/751e35f1419a6a060ded397dda1b2945bacaa711.tar.gz",
+                "sha256": "3d4610f55c04f50b7a9fe1e8d2d30bab6a8d85920b1580a934cb684f6b3bc56d"
+            },
+            "notice": {
+                "file": "asset-tinymce-5.10.9-LICENSE.TXT",
+                "url": "https://raw.githubusercontent.com/tinymce/tinymce/751e35f1419a6a060ded397dda1b2945bacaa711/LICENSE.TXT",
+                "sha256": "47a9dcd2574891a5a465112fd9dfcebcc7e61844edec27fa936a64642008fe66"
+            }
+        },
+        "bacon/bacon-qr-code@2.0.8": {
+            "declared_licenses": [
+                "BSD-2-Clause"
+            ],
+            "license_expression": "BSD-2-Clause",
+            "review": "",
+            "preferred_source": true,
+            "source": {
+                "file": "bacon-bacon-qr-code-2.0.8-src.tar.gz",
+                "url": "https://github.com/Bacon/BaconQrCode/archive/8674e51bb65af933a5ffaf1c308a660387c35c22.tar.gz",
+                "sha256": "e4471fb7fb19567931cf335d16fe24218f87d4167968241806e3920c8d757d2b"
+            },
+            "notice": {
+                "file": "bacon-bacon-qr-code-2.0.8-LICENSE",
+                "url": "https://raw.githubusercontent.com/Bacon/BaconQrCode/8674e51bb65af933a5ffaf1c308a660387c35c22/LICENSE",
+                "sha256": "6748d0268a176f839bfa1031724f9ce0963acbdadc71e503c2c3e9b59c8fcd68"
+            }
+        },
+        "dasprid/enum@1.0.7": {
+            "declared_licenses": [
+                "BSD-2-Clause"
+            ],
+            "license_expression": "BSD-2-Clause",
+            "review": "",
+            "preferred_source": true,
+            "source": {
+                "file": "dasprid-enum-1.0.7-src.tar.gz",
+                "url": "https://github.com/DASPRiD/Enum/archive/b5874fa9ed0043116c72162ec7f4fb50e02e7cce.tar.gz",
+                "sha256": "07e00334972575a3be0e18efd5cb17be3df76eca121296c0c84a0314f0a38484"
+            },
+            "notice": {
+                "file": "dasprid-enum-1.0.7-LICENSE",
+                "url": "https://raw.githubusercontent.com/DASPRiD/Enum/b5874fa9ed0043116c72162ec7f4fb50e02e7cce/LICENSE",
+                "sha256": "6748d0268a176f839bfa1031724f9ce0963acbdadc71e503c2c3e9b59c8fcd68"
+            }
+        },
+        "guzzlehttp/guzzle@7.10.0": {
+            "declared_licenses": [
+                "MIT"
+            ],
+            "license_expression": "MIT",
+            "review": "",
+            "preferred_source": true,
+            "source": {
+                "file": "guzzlehttp-guzzle-7.10.0-src.tar.gz",
+                "url": "https://github.com/guzzle/guzzle/archive/b51ac707cfa420b7bfd4e4d5e510ba8008e822b4.tar.gz",
+                "sha256": "6193bb037b0c043673d77367aeaf2464b9546b01b69432eac5620145426e2041"
+            },
+            "notice": {
+                "file": "guzzlehttp-guzzle-7.10.0-LICENSE",
+                "url": "https://raw.githubusercontent.com/guzzle/guzzle/b51ac707cfa420b7bfd4e4d5e510ba8008e822b4/LICENSE",
+                "sha256": "1090e16630dfd10d5f79be2fb68c4f2f0b168cc34fae57eca7150f735078332d"
+            }
+        },
+        "guzzlehttp/guzzle@7.15.5": {
+            "declared_licenses": [
+                "MIT"
+            ],
+            "license_expression": "MIT",
+            "review": "",
+            "preferred_source": true,
+            "source": {
+                "file": "guzzlehttp-guzzle-7.15.5-src.tar.gz",
+                "url": "https://github.com/guzzle/guzzle/archive/ee80339fd9177ba44c49cdb653ff02a4d1106b9a.tar.gz",
+                "sha256": "f04c27604abe660e88d53aa958c42c0241f4e42196d09e558fc96dbd161b2a73"
+            },
+            "notice": {
+                "file": "guzzlehttp-guzzle-7.15.5-LICENSE",
+                "url": "https://raw.githubusercontent.com/guzzle/guzzle/ee80339fd9177ba44c49cdb653ff02a4d1106b9a/LICENSE",
+                "sha256": "1090e16630dfd10d5f79be2fb68c4f2f0b168cc34fae57eca7150f735078332d"
+            }
+        },
+        "guzzlehttp/promises@2.3.0": {
+            "declared_licenses": [
+                "MIT"
+            ],
+            "license_expression": "MIT",
+            "review": "",
+            "preferred_source": true,
+            "source": {
+                "file": "guzzlehttp-promises-2.3.0-src.tar.gz",
+                "url": "https://github.com/guzzle/promises/archive/481557b130ef3790cf82b713667b43030dc9c957.tar.gz",
+                "sha256": "69f8615e1f89a1ae9a605b40b52fbbd7026e125598f040f19f9e68301b698df7"
+            },
+            "notice": {
+                "file": "guzzlehttp-promises-2.3.0-LICENSE",
+                "url": "https://raw.githubusercontent.com/guzzle/promises/481557b130ef3790cf82b713667b43030dc9c957/LICENSE",
+                "sha256": "098313b3908e2a799731aa3816386fe33af0bef21dbe6acc75e7c98958ec89ed"
+            }
+        },
+        "guzzlehttp/promises@2.5.3": {
+            "declared_licenses": [
+                "MIT"
+            ],
+            "license_expression": "MIT",
+            "review": "",
+            "preferred_source": true,
+            "source": {
+                "file": "guzzlehttp-promises-2.5.3-src.tar.gz",
+                "url": "https://github.com/guzzle/promises/archive/cde49999552d185d64715fe9c1f77a2aadd2f9f1.tar.gz",
+                "sha256": "431a2a9b9720e4c6e91f0a115ed3f582d06411ac9020cb64a5c4dfcbfb4cf1c1"
+            },
+            "notice": {
+                "file": "guzzlehttp-promises-2.5.3-LICENSE",
+                "url": "https://raw.githubusercontent.com/guzzle/promises/cde49999552d185d64715fe9c1f77a2aadd2f9f1/LICENSE",
+                "sha256": "098313b3908e2a799731aa3816386fe33af0bef21dbe6acc75e7c98958ec89ed"
+            }
+        },
+        "guzzlehttp/psr7@2.13.1": {
+            "declared_licenses": [
+                "MIT"
+            ],
+            "license_expression": "MIT",
+            "review": "",
+            "preferred_source": true,
+            "source": {
+                "file": "guzzlehttp-psr7-2.13.1-src.tar.gz",
+                "url": "https://github.com/guzzle/psr7/archive/95e7828100de18b4e269fb1703be530082d5166d.tar.gz",
+                "sha256": "f50d279797a54dd2f2553a5682f951775747e2bd60c2bed6925073c2fa0a4660"
+            },
+            "notice": {
+                "file": "guzzlehttp-psr7-2.13.1-LICENSE",
+                "url": "https://raw.githubusercontent.com/guzzle/psr7/95e7828100de18b4e269fb1703be530082d5166d/LICENSE",
+                "sha256": "709437fdecfeb9f22f71d0c144eb4d11938b99a7665f650e6f49fb9dcbfcce84"
+            }
+        },
+        "guzzlehttp/psr7@2.9.0": {
+            "declared_licenses": [
+                "MIT"
+            ],
+            "license_expression": "MIT",
+            "review": "",
+            "preferred_source": true,
+            "source": {
+                "file": "guzzlehttp-psr7-2.9.0-src.tar.gz",
+                "url": "https://github.com/guzzle/psr7/archive/7d0ed42f28e42d61352a7a79de682e5e67fec884.tar.gz",
+                "sha256": "1e8ae9ab4f9b136333830a0ba4269bff7824d1d598890c65139fd5b7f7a462a2"
+            },
+            "notice": {
+                "file": "guzzlehttp-psr7-2.9.0-LICENSE",
+                "url": "https://raw.githubusercontent.com/guzzle/psr7/7d0ed42f28e42d61352a7a79de682e5e67fec884/LICENSE",
+                "sha256": "709437fdecfeb9f22f71d0c144eb4d11938b99a7665f650e6f49fb9dcbfcce84"
+            }
+        },
+        "kolab/net_ldap3@v1.1.5": {
+            "declared_licenses": [
+                "GPL-3.0+"
+            ],
+            "license_expression": "GPL-3.0-or-later",
+            "review": "",
+            "preferred_source": true,
+            "source": {
+                "file": "kolab-net_ldap3-v1.1.5-src.tar.gz",
+                "url": "https://git.kolab.org/diffusion/PNL/php-net_ldap3.git",
+                "sha256": "d2ffbf9d154312ccc27dbbdc2e8a340763a3ea641d43957a356080530ade3bd2"
+            },
+            "notice": {
+                "file": "kolab-net_ldap3-v1.1.5-LICENSE",
+                "url": "https://git.kolab.org/diffusion/PNL/php-net_ldap3.git",
+                "sha256": "8ceb4b9ee5adedde47b31e975c1d90c73ad27b6b165a1dcd80c7c545eb65b903"
+            }
+        },
+        "masterminds/html5@2.7.6": {
+            "declared_licenses": [
+                "MIT"
+            ],
+            "license_expression": "MIT",
+            "review": "",
+            "preferred_source": true,
+            "source": {
+                "file": "masterminds-html5-2.7.6-src.tar.gz",
+                "url": "https://github.com/Masterminds/html5-php/archive/897eb517a343a2281f11bc5556d6548db7d93947.tar.gz",
+                "sha256": "cbc2ab8327b0941d6af93dffc64844381fdd25a4ac3b0caea5bf1cea6a59f228"
+            },
+            "notice": {
+                "file": "masterminds-html5-2.7.6-LICENSE.txt",
+                "url": "https://raw.githubusercontent.com/Masterminds/html5-php/897eb517a343a2281f11bc5556d6548db7d93947/LICENSE.txt",
+                "sha256": "fef48d3bbf037920a4f52ade06733b18ce31217a5847447a348dfef2e2e196cb"
+            }
+        },
+        "mlocati/ip-lib@1.22.0": {
+            "declared_licenses": [
+                "MIT"
+            ],
+            "license_expression": "MIT",
+            "review": "",
+            "preferred_source": true,
+            "source": {
+                "file": "mlocati-ip-lib-1.22.0-src.tar.gz",
+                "url": "https://github.com/mlocati/ip-lib/archive/4e40ffd3bf9989db19403d89c4d8be44b87b8a91.tar.gz",
+                "sha256": "c720f2910c413b2ba8281fdb22d03d5a6d0b6292726b5fe015ede859cf41fc97"
+            },
+            "notice": {
+                "file": "mlocati-ip-lib-1.22.0-LICENSE.txt",
+                "url": "https://raw.githubusercontent.com/mlocati/ip-lib/4e40ffd3bf9989db19403d89c4d8be44b87b8a91/LICENSE.txt",
+                "sha256": "c87e3e73f8b1edeffe078e8e800f460de5206120c47426f444de54408bcefa60"
+            }
+        },
+        "mstilkerich/carddavclient@v1.4.2": {
+            "declared_licenses": [
+                "MIT"
+            ],
+            "license_expression": "MIT",
+            "review": "",
+            "preferred_source": true,
+            "source": {
+                "file": "mstilkerich-carddavclient-v1.4.2-src.tar.gz",
+                "url": "https://github.com/mstilkerich/carddavclient/archive/f1e06156dc1d0f49b990404422ceeed005dca249.tar.gz",
+                "sha256": "5366373611a64803c91a45c52211e8a62587ca11154e882e224206b747913b33"
+            },
+            "notice": {
+                "file": "mstilkerich-carddavclient-v1.4.2-COPYING",
+                "url": "https://raw.githubusercontent.com/mstilkerich/carddavclient/f1e06156dc1d0f49b990404422ceeed005dca249/COPYING",
+                "sha256": "45d0d569e531fa61837ef5dd26878237d0af93962207e5b231b1e43c7ac25fe8"
+            }
+        },
+        "mstilkerich/rcmcarddav@5.1.3": {
+            "declared_licenses": [
+                "GPL-2.0-or-later"
+            ],
+            "license_expression": "GPL-2.0-or-later",
+            "review": "",
+            "preferred_source": true,
+            "source": {
+                "file": "mstilkerich-rcmcarddav-5.1.3-src.tar.gz",
+                "url": "https://github.com/mstilkerich/rcmcarddav/archive/1cebb53dac049a5184f83cfe149e070f500509a6.tar.gz",
+                "sha256": "7e001a80b869d9dcd0270520d257e03eb6926cda446089b9b7cd50b29c962742"
+            },
+            "notice": {
+                "file": "mstilkerich-rcmcarddav-5.1.3-LICENSE",
+                "url": "https://raw.githubusercontent.com/mstilkerich/rcmcarddav/1cebb53dac049a5184f83cfe149e070f500509a6/LICENSE",
+                "sha256": "8177f97513213526df2cf6184d8ff986c675afb514d4e68a404010521b880643"
+            }
+        },
+        "pear/auth_sasl@v1.1.0": {
+            "declared_licenses": [
+                "BSD"
+            ],
+            "license_expression": "BSD-3-Clause",
+            "review": "",
+            "preferred_source": true,
+            "source": {
+                "file": "pear-auth_sasl-v1.1.0-src.tar.gz",
+                "url": "https://github.com/pear/Auth_SASL/archive/db1ead3dc0bf986d2bab0dbc04d114800cf91dee.tar.gz",
+                "sha256": "8b52279775c57e75c6dcc2a28c3a14eb526c5a4585191b2e663c2ea827cab4b4"
+            },
+            "notice": {
+                "file": "pear-auth_sasl-v1.1.0-notice-SASL.php",
+                "url": "https://raw.githubusercontent.com/pear/Auth_SASL/db1ead3dc0bf986d2bab0dbc04d114800cf91dee/Auth/SASL.php",
+                "sha256": "32f30776b884ccdb0ccc21d7dee35c74f16f454f6c0e623da615d01a535d7b50"
+            }
+        },
+        "pear/console_commandline@v1.2.6": {
+            "declared_licenses": [
+                "MIT"
+            ],
+            "license_expression": "MIT",
+            "review": "",
+            "preferred_source": true,
+            "source": {
+                "file": "pear-console_commandline-v1.2.6-src.tar.gz",
+                "url": "https://github.com/pear/Console_CommandLine/archive/611c5bff2e47ec5a184748cb5fedc2869098ff28.tar.gz",
+                "sha256": "269aea8d29f0441c71a6bee559a1ff24959c7a4fa12774bcc74cf38dd0442a10"
+            },
+            "notice": {
+                "file": "pear-console_commandline-v1.2.6-notice-CommandLine.php",
+                "url": "https://raw.githubusercontent.com/pear/Console_CommandLine/611c5bff2e47ec5a184748cb5fedc2869098ff28/Console/CommandLine.php",
+                "sha256": "802a75e80752c57da103dfdae5fe785ce4593fd4826bb28d7a634b9d1ac9168d"
+            }
+        },
+        "pear/console_getopt@v1.4.3": {
+            "declared_licenses": [
+                "BSD-2-Clause"
+            ],
+            "license_expression": "BSD-2-Clause",
+            "review": "",
+            "preferred_source": true,
+            "source": {
+                "file": "pear-console_getopt-v1.4.3-src.tar.gz",
+                "url": "https://github.com/pear/Console_Getopt/archive/a41f8d3e668987609178c7c4a9fe48fecac53fa0.tar.gz",
+                "sha256": "bc7701d6ab80078c3aa874c188c42c5a47436bc553e8831671a9584e110c6361"
+            },
+            "notice": {
+                "file": "pear-console_getopt-v1.4.3-LICENSE",
+                "url": "https://raw.githubusercontent.com/pear/Console_Getopt/a41f8d3e668987609178c7c4a9fe48fecac53fa0/LICENSE",
+                "sha256": "676a3871a10dbff49d20f63613cf7500a40055f901b8d68c5079c4d6d2adca67"
+            }
+        },
+        "pear/crypt_gpg@v1.6.11": {
+            "declared_licenses": [
+                "LGPL-2.1"
+            ],
+            "license_expression": "LGPL-2.1-only",
+            "review": "",
+            "preferred_source": true,
+            "source": {
+                "file": "pear-crypt_gpg-v1.6.11-src.tar.gz",
+                "url": "https://github.com/pear/Crypt_GPG/archive/6d307aae8b38ee35d0a2297510bd2356d1452c2b.tar.gz",
+                "sha256": "bb6bd98f24cfd5a0dcad2b850d9bccc88805ef24b11c286ffd17a99a48256c39"
+            },
+            "notice": {
+                "file": "pear-crypt_gpg-v1.6.11-LICENSE",
+                "url": "https://raw.githubusercontent.com/pear/Crypt_GPG/6d307aae8b38ee35d0a2297510bd2356d1452c2b/LICENSE",
+                "sha256": "b42843aea67140b2489875944a5a44d42060977d6340b1abdab2929238e09822"
+            }
+        },
+        "pear/mail_mime@1.10.13": {
+            "declared_licenses": [
+                "BSD-3-Clause"
+            ],
+            "license_expression": "BSD-3-Clause",
+            "review": "",
+            "preferred_source": true,
+            "source": {
+                "file": "pear-mail_mime-1.10.13-src.tar.gz",
+                "url": "https://github.com/pear/Mail_Mime/archive/cda56082cc1a3722d6929caa66abfe95b7406e12.tar.gz",
+                "sha256": "647edf663dd198b7e7d2efe294b3d853d256cf8065f30557d56f7b12c5847e00"
+            },
+            "notice": {
+                "file": "pear-mail_mime-1.10.13-notice-mime.php",
+                "url": "https://raw.githubusercontent.com/pear/Mail_Mime/cda56082cc1a3722d6929caa66abfe95b7406e12/Mail/mime.php",
+                "sha256": "570e1233d9947047fdf069a12b9dc9876dcd1177d311ae29940db62a3ca43e58"
+            }
+        },
+        "pear/net_ldap2@v2.3.0": {
+            "declared_licenses": [
+                "LGPL-3.0"
+            ],
+            "license_expression": "LGPL-3.0-only",
+            "review": "",
+            "preferred_source": true,
+            "source": {
+                "file": "pear-net_ldap2-v2.3.0-src.tar.gz",
+                "url": "https://github.com/pear/Net_LDAP2/archive/6eae6d20533469ffe1c01684923cd09f0fae3b77.tar.gz",
+                "sha256": "d8417a4138cf53606f6380ef4202d25ec2f1204003c55d0053b8cea39c934a32"
+            },
+            "notice": {
+                "file": "pear-net_ldap2-v2.3.0-LICENSE",
+                "url": "https://raw.githubusercontent.com/pear/Net_LDAP2/6eae6d20533469ffe1c01684923cd09f0fae3b77/LICENSE",
+                "sha256": "e3f74d6997a64bdbcc391b559ea11b60b08c7b2ab1452f76a3f2934270740c59"
+            }
+        },
+        "pear/net_sieve@1.4.8": {
+            "declared_licenses": [
+                "BSD-2-Clause"
+            ],
+            "license_expression": "BSD-2-Clause",
+            "review": "",
+            "preferred_source": true,
+            "source": {
+                "file": "pear-net_sieve-1.4.8-src.tar.gz",
+                "url": "https://github.com/pear/Net_Sieve/archive/345eb171c0b377e4f9f6fe9c6e532a76dfe2d754.tar.gz",
+                "sha256": "4e5a1d5e305e414798356303c89ebaf64f810eacd104892a08b25c8d34a29e48"
+            },
+            "notice": {
+                "file": "pear-net_sieve-1.4.8-notice-Sieve.php",
+                "url": "https://raw.githubusercontent.com/pear/Net_Sieve/345eb171c0b377e4f9f6fe9c6e532a76dfe2d754/Sieve.php",
+                "sha256": "a1070b93394ada2b63f6c2df482ebb528c05381acf5ecf08493ccbbb2da0d40b"
+            }
+        },
+        "pear/net_smtp@1.10.1": {
+            "declared_licenses": [
+                "BSD-2-Clause"
+            ],
+            "license_expression": "BSD-2-Clause",
+            "review": "",
+            "preferred_source": true,
+            "source": {
+                "file": "pear-net_smtp-1.10.1-src.tar.gz",
+                "url": "https://github.com/pear/Net_SMTP/archive/cfd963dc5cc73b4d64c7769e47dfa0f439dec536.tar.gz",
+                "sha256": "4badd4d433b8e9cfe0581b094b8eb7d4f226ee4ab7ace9c672142ad82082deb0"
+            },
+            "notice": {
+                "file": "pear-net_smtp-1.10.1-LICENSE",
+                "url": "https://raw.githubusercontent.com/pear/Net_SMTP/cfd963dc5cc73b4d64c7769e47dfa0f439dec536/LICENSE",
+                "sha256": "ec12c6a12cf14352c69e85722ee4c74ec722b8adeb5e90e249827a87ae3474de"
+            }
+        },
+        "pear/net_socket@v1.2.2": {
+            "declared_licenses": [
+                "PHP License"
+            ],
+            "license_expression": "LicenseRef-PHP-2.02",
+            "review": "",
+            "preferred_source": true,
+            "source": {
+                "file": "pear-net_socket-v1.2.2-src.tar.gz",
+                "url": "https://github.com/pear/Net_Socket/archive/bbe6a12bb4f7059dba161f6ddd43f369c0ec8d09.tar.gz",
+                "sha256": "197c4be043ead865c3dbfca496cffbf9938f23dc0afc703fa4c9e7a34d04bd60"
+            },
+            "notice": {
+                "file": "pear-net_socket-v1.2.2-notice-Socket.php",
+                "url": "https://raw.githubusercontent.com/pear/Net_Socket/bbe6a12bb4f7059dba161f6ddd43f369c0ec8d09/Net/Socket.php",
+                "sha256": "535c8e55d510263e6fbd059eb6bd9f598ec57342221c71a841eef8d0d76619b4"
+            }
+        },
+        "pear/pear-core-minimal@v1.10.18": {
+            "declared_licenses": [
+                "BSD-3-Clause"
+            ],
+            "license_expression": "BSD-3-Clause",
+            "review": "",
+            "preferred_source": true,
+            "source": {
+                "file": "pear-pear-core-minimal-v1.10.18-src.tar.gz",
+                "url": "https://github.com/pear/pear-core-minimal/archive/c7b55789d01de0ce090d289b73f1bbd6a2f113b1.tar.gz",
+                "sha256": "01f0de8f4a64e2d8522d526f42164df3c60fddd7cdb91c180b4efa866f21d1ca"
+            },
+            "notice": {
+                "file": "pear-pear-core-minimal-v1.10.18-notice-PEAR.php",
+                "url": "https://raw.githubusercontent.com/pear/pear-core-minimal/c7b55789d01de0ce090d289b73f1bbd6a2f113b1/src/PEAR.php",
+                "sha256": "1e118ec5b36b847af5d8181c0e34c8482c4fa833ce4f2cea4059c927ee2fdbb8"
+            }
+        },
+        "pear/pear_exception@v1.0.2": {
+            "declared_licenses": [
+                "BSD-2-Clause"
+            ],
+            "license_expression": "BSD-2-Clause",
+            "review": "",
+            "preferred_source": true,
+            "source": {
+                "file": "pear-pear_exception-v1.0.2-src.tar.gz",
+                "url": "https://github.com/pear/PEAR_Exception/archive/b14fbe2ddb0b9f94f5b24cf08783d599f776fff0.tar.gz",
+                "sha256": "681fd29aa2132ccf6f45f45b379a0686a3d3bb594269617d621168b0deb48740"
+            },
+            "notice": {
+                "file": "pear-pear_exception-v1.0.2-LICENSE",
+                "url": "https://raw.githubusercontent.com/pear/PEAR_Exception/b14fbe2ddb0b9f94f5b24cf08783d599f776fff0/LICENSE",
+                "sha256": "4d8e46e56a583d98b160bda64c4c1b86f9c432627d55dbcece5e8a8cc7959164"
+            }
+        },
+        "psr/http-client@1.0.3": {
+            "declared_licenses": [
+                "MIT"
+            ],
+            "license_expression": "MIT",
+            "review": "",
+            "preferred_source": true,
+            "source": {
+                "file": "psr-http-client-1.0.3-src.tar.gz",
+                "url": "https://github.com/php-fig/http-client/archive/bb5906edc1c324c9a05aa0873d40117941e5fa90.tar.gz",
+                "sha256": "d0bc163f770cb5a7f09548dd9c4f2edb1acd5d8451892e9d59195e7f657153f0"
+            },
+            "notice": {
+                "file": "psr-http-client-1.0.3-LICENSE",
+                "url": "https://raw.githubusercontent.com/php-fig/http-client/bb5906edc1c324c9a05aa0873d40117941e5fa90/LICENSE",
+                "sha256": "ea5ec78820494a5256b0ccbecef9212bc7b93b797273ab08cc2eaa34e0ab3e50"
+            }
+        },
+        "psr/http-factory@1.1.0": {
+            "declared_licenses": [
+                "MIT"
+            ],
+            "license_expression": "MIT",
+            "review": "",
+            "preferred_source": true,
+            "source": {
+                "file": "psr-http-factory-1.1.0-src.tar.gz",
+                "url": "https://github.com/php-fig/http-factory/archive/2b4765fddfe3b508ac62f829e852b1501d3f6e8a.tar.gz",
+                "sha256": "5fbc15aba3dd10b2393827726063dc29f57abc5fc000b387e4549da5b37ccedd"
+            },
+            "notice": {
+                "file": "psr-http-factory-1.1.0-LICENSE",
+                "url": "https://raw.githubusercontent.com/php-fig/http-factory/2b4765fddfe3b508ac62f829e852b1501d3f6e8a/LICENSE",
+                "sha256": "d2e70341a9667b93ad542e4842b0b7022d302aa7c2d2a909b156b8f1e3c4cca8"
+            }
+        },
+        "psr/http-message@2.0": {
+            "declared_licenses": [
+                "MIT"
+            ],
+            "license_expression": "MIT",
+            "review": "",
+            "preferred_source": true,
+            "source": {
+                "file": "psr-http-message-2.0-src.tar.gz",
+                "url": "https://github.com/php-fig/http-message/archive/402d35bcb92c70c026d1a6a9883f06b2ead23d71.tar.gz",
+                "sha256": "5c43dc9a0abcdc78ca7e5368b2c75e41f4295029d9f0b098fc70e58f4224fee3"
+            },
+            "notice": {
+                "file": "psr-http-message-2.0-LICENSE",
+                "url": "https://raw.githubusercontent.com/php-fig/http-message/402d35bcb92c70c026d1a6a9883f06b2ead23d71/LICENSE",
+                "sha256": "8d36e938943b04ef01994bb148793c971685b746d0ced31da03a97594a47ee62"
+            }
+        },
+        "psr/log@1.1.4": {
+            "declared_licenses": [
+                "MIT"
+            ],
+            "license_expression": "MIT",
+            "review": "",
+            "preferred_source": true,
+            "source": {
+                "file": "psr-log-1.1.4-src.tar.gz",
+                "url": "https://github.com/php-fig/log/archive/d49695b909c3b7628b6289db5479a1c204601f11.tar.gz",
+                "sha256": "0ef9bb7e9b9f84dc92a27e150a63b0f9c828a117c2fc36490649f262b7dda977"
+            },
+            "notice": {
+                "file": "psr-log-1.1.4-LICENSE",
+                "url": "https://raw.githubusercontent.com/php-fig/log/d49695b909c3b7628b6289db5479a1c204601f11/LICENSE",
+                "sha256": "6e944907067bae93c00a9f2ad51032243820b22df34b77c77690d46cb2e98e24"
+            }
+        },
+        "ralouphie/getallheaders@3.0.3": {
+            "declared_licenses": [
+                "MIT"
+            ],
+            "license_expression": "MIT",
+            "review": "",
+            "preferred_source": true,
+            "source": {
+                "file": "ralouphie-getallheaders-3.0.3-src.tar.gz",
+                "url": "https://github.com/ralouphie/getallheaders/archive/120b605dfeb996808c31b6477290a714d356e822.tar.gz",
+                "sha256": "aac125c60f74035f7489eae015246bc794df085815a9cb0876a1836f74631ba3"
+            },
+            "notice": {
+                "file": "ralouphie-getallheaders-3.0.3-LICENSE",
+                "url": "https://raw.githubusercontent.com/ralouphie/getallheaders/120b605dfeb996808c31b6477290a714d356e822/LICENSE",
+                "sha256": "e97490769229e08f0a017f5c6fd5d8aa1669672110c6df5ebd0506f23ec91087"
+            }
+        },
+        "roundcube/plugin-installer@0.3.11": {
+            "declared_licenses": [
+                "GPL-3.0-or-later"
+            ],
+            "license_expression": "GPL-3.0-or-later",
+            "review": "",
+            "preferred_source": true,
+            "source": {
+                "file": "roundcube-plugin-installer-0.3.11-src.tar.gz",
+                "url": "https://github.com/roundcube/plugin-installer/archive/93c5cfc660d47929aaca64585791e7e3887948ed.tar.gz",
+                "sha256": "58856881b28708141614fcdcce62a0981f702ff3c93453a0aea55617ac70380a"
+            },
+            "notice": {
+                "file": "roundcube-plugin-installer-0.3.11-notice-composer.json",
+                "url": "https://raw.githubusercontent.com/roundcube/plugin-installer/93c5cfc660d47929aaca64585791e7e3887948ed/composer.json",
+                "sha256": "a214bf701fa8c2e938bcba7683377e7ed04b9060710b66ab1ecccb28a6138fd1"
+            }
+        },
+        "roundcube/plugin-installer@0.3.2": {
+            "declared_licenses": [
+                "GPL-3.0+"
+            ],
+            "license_expression": "GPL-3.0-or-later",
+            "review": "",
+            "preferred_source": true,
+            "source": {
+                "file": "roundcube-plugin-installer-0.3.2-src.tar.gz",
+                "url": "https://github.com/roundcube/plugin-installer/archive/c4335e20b86cfe3a184ccf24d675c6a0338a372a.tar.gz",
+                "sha256": "91050fe3261fc9c2a853369b686cb232c96308a8c205b7bb599d8ade315edd09"
+            },
+            "notice": {
+                "file": "roundcube-plugin-installer-0.3.2-notice-PluginInstaller.php",
+                "url": "https://raw.githubusercontent.com/roundcube/plugin-installer/c4335e20b86cfe3a184ccf24d675c6a0338a372a/src/Roundcube/Composer/PluginInstaller.php",
+                "sha256": "7ce7d904701350670a1c0062840e7ed37ed1da5425fe86fe3157c30199bbfa00"
+            }
+        },
+        "roundcube/roundcubemail@1.6.19": {
+            "declared_licenses": [
+                "GPL-3.0-or-later"
+            ],
+            "license_expression": "GPL-3.0-or-later",
+            "review": "",
+            "preferred_source": true,
+            "source": {
+                "file": "roundcube-roundcubemail-1.6.19-src.tar.gz",
+                "url": "https://github.com/roundcube/roundcubemail/archive/29beae7282135a3cd59a3945bd33ee8f904d6217.tar.gz",
+                "sha256": "ec2b9d60e64f17d5e6a9853612c06d67e10ddeda0ec9f4262fb9e5129314a757"
+            },
+            "notice": {
+                "file": "roundcube-roundcubemail-1.6.19-LICENSE",
+                "url": "https://raw.githubusercontent.com/roundcube/roundcubemail/29beae7282135a3cd59a3945bd33ee8f904d6217/LICENSE",
+                "sha256": "8ceb4b9ee5adedde47b31e975c1d90c73ad27b6b165a1dcd80c7c545eb65b903"
+            }
+        },
+        "roundcube/rtf-html-php@v2.2": {
+            "declared_licenses": [
+                "GPL-2.0"
+            ],
+            "license_expression": "GPL-2.0-only",
+            "review": "",
+            "preferred_source": true,
+            "source": {
+                "file": "roundcube-rtf-html-php-v2.2-src.tar.gz",
+                "url": "https://github.com/roundcube/rtf-html-php/archive/a3432ca249b73bf24fec50114191a63ad8b1478c.tar.gz",
+                "sha256": "72613172f1fba6a44a5af8af08509312e901de735578a9009338e4f185f119dd"
+            },
+            "notice": {
+                "file": "roundcube-rtf-html-php-v2.2-LICENSE",
+                "url": "https://raw.githubusercontent.com/roundcube/rtf-html-php/a3432ca249b73bf24fec50114191a63ad8b1478c/LICENSE",
+                "sha256": "0866dc15d7608b6896f2c8d61158c1daa5c48577517479b207521071eeb7dd4f"
+            }
+        },
+        "sabre/uri@2.3.4": {
+            "declared_licenses": [
+                "BSD-3-Clause"
+            ],
+            "license_expression": "BSD-3-Clause",
+            "review": "",
+            "preferred_source": true,
+            "source": {
+                "file": "sabre-uri-2.3.4-src.tar.gz",
+                "url": "https://github.com/sabre-io/uri/archive/b76524c22de90d80ca73143680a8e77b1266c291.tar.gz",
+                "sha256": "619c1fcbbda71c6e608988b48ef856f154e529b526076cf1e4fe0077f8533013"
+            },
+            "notice": {
+                "file": "sabre-uri-2.3.4-LICENSE",
+                "url": "https://raw.githubusercontent.com/sabre-io/uri/b76524c22de90d80ca73143680a8e77b1266c291/LICENSE",
+                "sha256": "bbf65dcefeabb404ad579fb3c17055070a26bfb094c6647dd4035e23e8effd2a"
+            }
+        },
+        "sabre/vobject@4.5.8": {
+            "declared_licenses": [
+                "BSD-3-Clause"
+            ],
+            "license_expression": "BSD-3-Clause",
+            "review": "",
+            "preferred_source": true,
+            "source": {
+                "file": "sabre-vobject-4.5.8-src.tar.gz",
+                "url": "https://github.com/sabre-io/vobject/archive/d554eb24d64232922e1eab5896cc2f84b3b9ffb1.tar.gz",
+                "sha256": "baa18d7c6b1fde9a95a1553abf6e7ceb56eaaeadbd931514c4e36f49a6459920"
+            },
+            "notice": {
+                "file": "sabre-vobject-4.5.8-LICENSE",
+                "url": "https://raw.githubusercontent.com/sabre-io/vobject/d554eb24d64232922e1eab5896cc2f84b3b9ffb1/LICENSE",
+                "sha256": "9202ae75b7612024aa44fefb6ae9c8966a79946a3b64899ae42d931b58e09050"
+            }
+        },
+        "sabre/xml@4.0.7": {
+            "declared_licenses": [
+                "BSD-3-Clause"
+            ],
+            "license_expression": "BSD-3-Clause",
+            "review": "",
+            "preferred_source": true,
+            "source": {
+                "file": "sabre-xml-4.0.7-src.tar.gz",
+                "url": "https://github.com/sabre-io/xml/archive/53db7bad0953949fb61037fbf9b13b421492395c.tar.gz",
+                "sha256": "dff208175a3c42c4446f9819705ae7d130d11a8585026c0d964bbbf95e160c8b"
+            },
+            "notice": {
+                "file": "sabre-xml-4.0.7-LICENSE",
+                "url": "https://raw.githubusercontent.com/sabre-io/xml/53db7bad0953949fb61037fbf9b13b421492395c/LICENSE",
+                "sha256": "9277506cffcc7342a92496e4939aef1f4548397d18e8b517f5674160e3916fa2"
+            }
+        },
+        "shcp/shcp_dav@1": {
+            "declared_licenses": [
+                "MIT"
+            ],
+            "license_expression": "MIT",
+            "review": "",
+            "preferred_source": true,
+            "source": {
+                "file": "shcp-webmail-cb6a411ac139-src.tar.gz",
+                "url": "https://github.com/SenternalTech/shcp-webmail/archive/cb6a411ac13953d33bd8aaf5979b644c17ce4ea4.tar.gz",
+                "sha256": "ae4f52512505c4dd76952259740b6f1acc1365dea2d963369841265d9b4bdfa0"
+            },
+            "notice": {
+                "file": "shcp-shcp_dav-1-LICENSE",
+                "url": "https://raw.githubusercontent.com/SenternalTech/shcp-webmail/cb6a411ac13953d33bd8aaf5979b644c17ce4ea4/plugins/shcp_dav/LICENSE",
+                "sha256": "ab2b46c319c2efd09dbe29e28962a50f68f96b9c3af028251857ff94f6d8fe98"
+            }
+        },
+        "shcp/shcp_password@1": {
+            "declared_licenses": [
+                "MIT"
+            ],
+            "license_expression": "MIT",
+            "review": "",
+            "preferred_source": true,
+            "source": {
+                "file": "shcp-webmail-cb6a411ac139-src.tar.gz",
+                "url": "https://github.com/SenternalTech/shcp-webmail/archive/cb6a411ac13953d33bd8aaf5979b644c17ce4ea4.tar.gz",
+                "sha256": "ae4f52512505c4dd76952259740b6f1acc1365dea2d963369841265d9b4bdfa0"
+            },
+            "notice": {
+                "file": "shcp-shcp_password-1-LICENSE",
+                "url": "https://raw.githubusercontent.com/SenternalTech/shcp-webmail/cb6a411ac13953d33bd8aaf5979b644c17ce4ea4/plugins/shcp_password/LICENSE",
+                "sha256": "e7485bf312f2bb09620515443dd23ec37092a42996e533074832d3c0a424507c"
+            }
+        },
+        "shcp/shcp_sso@1": {
+            "declared_licenses": [
+                "MIT"
+            ],
+            "license_expression": "MIT",
+            "review": "",
+            "preferred_source": true,
+            "source": {
+                "file": "shcp-webmail-cb6a411ac139-src.tar.gz",
+                "url": "https://github.com/SenternalTech/shcp-webmail/archive/cb6a411ac13953d33bd8aaf5979b644c17ce4ea4.tar.gz",
+                "sha256": "ae4f52512505c4dd76952259740b6f1acc1365dea2d963369841265d9b4bdfa0"
+            },
+            "notice": {
+                "file": "shcp-shcp_sso-1-LICENSE",
+                "url": "https://raw.githubusercontent.com/SenternalTech/shcp-webmail/cb6a411ac13953d33bd8aaf5979b644c17ce4ea4/plugins/shcp_sso/LICENSE",
+                "sha256": "ab2b46c319c2efd09dbe29e28962a50f68f96b9c3af028251857ff94f6d8fe98"
+            }
+        },
+        "symfony/deprecation-contracts@v2.5.4": {
+            "declared_licenses": [
+                "MIT"
+            ],
+            "license_expression": "MIT",
+            "review": "",
+            "preferred_source": true,
+            "source": {
+                "file": "symfony-deprecation-contracts-v2.5.4-src.tar.gz",
+                "url": "https://github.com/symfony/deprecation-contracts/archive/605389f2a7e5625f273b53960dc46aeaf9c62918.tar.gz",
+                "sha256": "b46c60ed8b9b9d8f8fa752cf39bb0d1753a648dfc98e6394ce1a7387c9244090"
+            },
+            "notice": {
+                "file": "symfony-deprecation-contracts-v2.5.4-LICENSE",
+                "url": "https://raw.githubusercontent.com/symfony/deprecation-contracts/605389f2a7e5625f273b53960dc46aeaf9c62918/LICENSE",
+                "sha256": "b92809182501f0fa422167ea44484b41877e1736e8283d0377fdc9664bb9a02d"
+            }
+        },
+        "symfony/polyfill-php80@v1.37.0": {
+            "declared_licenses": [
+                "MIT"
+            ],
+            "license_expression": "MIT",
+            "review": "",
+            "preferred_source": true,
+            "source": {
+                "file": "symfony-polyfill-php80-v1.37.0-src.tar.gz",
+                "url": "https://github.com/symfony/polyfill-php80/archive/dfb55726c3a76ea3b6459fcfda1ec2d80a682411.tar.gz",
+                "sha256": "1563458d111b536858cb411e907d8a75ffa6bf79c12d512a6e6b496ef2657fa9"
+            },
+            "notice": {
+                "file": "symfony-polyfill-php80-v1.37.0-LICENSE",
+                "url": "https://raw.githubusercontent.com/symfony/polyfill-php80/dfb55726c3a76ea3b6459fcfda1ec2d80a682411/LICENSE",
+                "sha256": "b92809182501f0fa422167ea44484b41877e1736e8283d0377fdc9664bb9a02d"
+            }
+        }
+    }
+}
