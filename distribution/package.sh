@@ -34,7 +34,7 @@ jq -e --arg release_id "$release_id" --arg filename "$source_filename" '
 # Public PR CI has no release signing key and cannot pass this gate.
 gpgv --status-fd 1 --keyring /usr/share/keyrings/shcp-release-keyring.gpg \
     "$signature" "$assembled/payload-manifest.json" >"$scratch/signature-status"
-grep -qE '^\[GNUPG:\] VALIDSIG .* 3DE2B72158369817363C9377AC582BC7BEBB2645$' "$scratch/signature-status"
+grep -qE '^\[GNUPG:\] VALIDSIG .* 53D8134D99A248002B320B24B0A2E16C763A1BFF$' "$scratch/signature-status"
 php "$here/verify-payload.php" "$assembled/payload" "$assembled/payload-manifest.json"
 cp -a "$assembled/payload" "$stage/usr/share/shcp-webmail/payload"
 install -m 0644 "$assembled/payload-manifest.json" "$stage/usr/share/shcp-webmail/payload-manifest.json"
