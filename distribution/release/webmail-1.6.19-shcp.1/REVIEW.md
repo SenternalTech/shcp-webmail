@@ -1,7 +1,6 @@
 # webmail-1.6.19-shcp.1 source lock — review notes
 
-DRAFT. Every `review` field in `source-lock.json` is empty on purpose: `source-audit.php`
-refuses the lock until the release authority fills them in. Nothing here is signed or published.
+APPROVED by the release authority (owner) on 2026-10-01; every `review` field records it.
 
 Sources are GitHub archive tarballs pinned to resolved commit SHAs (never tags); notices are the
 upstream license file at the same commit, or the grant-bearing file where upstream ships none.
