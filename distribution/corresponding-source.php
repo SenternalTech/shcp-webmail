@@ -118,8 +118,9 @@ function wm_write_source_archive(string $path, array $files, int $epoch): void
         foreach ($files as $name => $source) {
             if (is_link($source) || !is_file($source)) { throw new RuntimeException('Source archive member is not a regular file'); }
             $size = filesize($source);
+            $mode = fileperms($source) & 0111 ? 0755 : 0644;
             $input = fopen($source, 'rb');
-            if ($size === false || $input === false || gzwrite($gzip, wm_tar_header($name, $size, 0644, $epoch)) !== 512) {
+            if ($size === false || $input === false || gzwrite($gzip, wm_tar_header($name, $size, $mode, $epoch)) !== 512) {
                 throw new RuntimeException('Cannot stream source archive member');
             }
             while (!feof($input)) {

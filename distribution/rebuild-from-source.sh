@@ -12,14 +12,14 @@ mkdir -p "$output"
 locator=$(mktemp "$output/.source-locator.XXXXXX")
 trap 'rm -f -- "$locator"' EXIT
 jq -n --slurpfile p "$provenance" --arg filename "$(basename "$archive")" \
-  --arg sha "$(sha256sum "$archive" | awk '{print $1}')" --argjson size "$(stat -f %z "$archive" 2>/dev/null || stat -c %s "$archive")" '
+  --arg sha "$(sha256sum "$archive" | awk '{print $1}')" --argjson size "$(wc -c < "$archive")" '
   $p[0] as $p | {format:1,release_id:$p.release_id,package_name:"shcp-webmail",
     version:$p.version,revision:$p.revision,source_date_epoch:$p.source_date_epoch,
     source:{url:("https://repo.shcp.dev/sources/shcp-webmail/"+$p.release_id+"/"+$filename),filename:$filename,sha256:$sha,size:$size},
     payload_manifest_sha256:$p.payload_manifest_sha256,source_inventory_sha256:$p.source_inventory_sha256,
     source_lock_sha256:$p.source_lock_sha256,git_commit:$p.git_commit,packages:[]}' >"$locator"
 export SHCP_EXISTING_SOURCE_ARCHIVE="$archive" SHCP_EXISTING_SOURCE_LOCATOR="$locator" SHCP_EXISTING_SOURCE_ROOT="$root"
-"$here/package.sh" deb "$root/assembled" "$root/source-lock.json" "$root/inputs" "$root/assembled/payload-manifest.json.asc" "$output"
-"$here/package.sh" rpm "$root/assembled" "$root/source-lock.json" "$root/inputs" "$root/assembled/payload-manifest.json.asc" "$output"
+bash "$here/package.sh" deb "$root/assembled" "$root/source-lock.json" "$root/inputs" "$root/assembled/payload-manifest.json.asc" "$output"
+bash "$here/package.sh" rpm "$root/assembled" "$root/source-lock.json" "$root/inputs" "$root/assembled/payload-manifest.json.asc" "$output"
 php "$here/finalize-release.php" "$output" --output "$output/$release_id-release-set.json"
 printf 'Rebuilt %s from complete corresponding source\n' "$release_id"

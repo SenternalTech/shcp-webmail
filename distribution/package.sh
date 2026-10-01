@@ -85,7 +85,7 @@ cp -a ${stage}/usr %{buildroot}/
 /usr/share/shcp-webmail
 /usr/share/doc/shcp-webmail
 EOF
-    rpmbuild --define "_topdir $scratch/rpm" -bb "$scratch/rpm/SPECS/shcp-webmail.spec"
+    rpmbuild --define "_topdir $scratch/rpm" --define "use_source_date_epoch_as_buildtime 1" --define "_buildhost shcp-webmail.reproducible" -bb "$scratch/rpm/SPECS/shcp-webmail.spec"
     artifact="shcp-webmail-${version}-${revision}.shcp.noarch.rpm"
     mv "$scratch/rpm/RPMS/noarch/$artifact" "$scratch/$artifact"
 fi

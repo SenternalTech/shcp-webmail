@@ -72,6 +72,12 @@ try {
     check(hash_file('sha256', "$tmp/one.tar.gz") === hash_file('sha256', "$tmp/two.tar.gz"), 'source archive is reproducible');
     $source = new PharData("$tmp/one.tar.gz");
     check((string)$source['webmail-1.6.19-shcp.1/member']->getContent() === "deterministic bytes\n", 'source archive contains exact bytes');
+    file_put_contents("$tmp/tool", "#!/bin/sh\n");
+    chmod("$tmp/tool", 0755);
+    wm_write_source_archive("$tmp/modes.tar.gz", ['release/member' => "$tmp/member", 'release/tool' => "$tmp/tool"], 1789776000);
+    $modes = new PharData("$tmp/modes.tar.gz");
+    check(($modes['release/tool']->getPerms() & 0777) === 0755 && ($modes['release/member']->getPerms() & 0777) === 0644, 'source archive keeps the executable bit and nothing else');
+    unset($modes);
     rejected(fn() => wm_write_source_archive("$tmp/unsafe.tar.gz", ['../escape' => "$tmp/member"], 1789776000), 'source archive rejects unsafe paths');
     symlink("$tmp/member", "$tmp/source-link");
     rejected(fn() => wm_write_source_archive("$tmp/link.tar.gz", ['release/link' => "$tmp/source-link"], 1789776000), 'source archive rejects links');
