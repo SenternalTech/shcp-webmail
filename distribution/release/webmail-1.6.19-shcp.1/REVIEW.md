@@ -58,8 +58,7 @@ issues were filed, by owner decision.
   `Mail/mime.php`, `Sieve.php`, `src/PEAR.php`, `composer.json`, `PluginInstaller.php`).
 - **pear/net_socket@v1.2.1**: the notice is the upstream `LICENSE` added by the relicensing
   commit.
-- **shcp/\***: the source is pinned to shcp-webmail `main` at `f6da7e7f`. Re-pin it to the
-  release tag commit.
+- **shcp/\***: the source is pinned to the release tag `webmail-1.6.19-shcp.1` (`351f7220`).
 
 All remaining components map cleanly: the declared license is an unambiguous SPDX id and the
 notice is the upstream license file.
