@@ -16,6 +16,6 @@ try {
     (new \Shcp\Webmail\Dav\Bindings(new PDO($dsn),$prefix))->install();
     fwrite(STDOUT,"SHCP_DAV_SCHEMA_OK=1\n");
 } catch (Throwable $e) {
-    fwrite(STDERR,"SHCP DAV schema migration failed\n");
+    fwrite(STDERR,"SHCP DAV schema migration failed: ".get_class($e).": ".$e->getMessage()."\n");
     exit(1);
 }

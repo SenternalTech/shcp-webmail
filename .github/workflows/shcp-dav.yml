@@ -32,6 +32,9 @@ jobs:
           extensions: pdo, pdo_sqlite
           coverage: none
 
+      - name: Check schema migration isolation and diagnostics
+        run: php tests/shcp-dav/schema.php
+
       # The fixture URL and digest come from distribution/inputs.json, the same
       # pin the distribution build uses, so the test cannot drift from what ships.
       - name: Fetch and verify the pinned rcmcarddav fixture

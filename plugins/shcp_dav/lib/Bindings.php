@@ -110,7 +110,19 @@ final class Bindings
                 $this->db->exec("DELETE FROM sqlite_sequence WHERE name='{$p}{$table}'");
                 $this->db->exec("INSERT INTO sqlite_sequence(name,seq) VALUES('{$p}{$table}',{$high})");
             }
-            if ($this->db->query('PRAGMA foreign_key_check')->fetch()!==false) throw new \RuntimeException('DAV cache schema rebuild left dangling references');
+            $checked=array_fill_keys(array_map(fn($table)=>$p.$table,array_keys(self::SCOPES)),true);
+            // Include tables that reference an allocator table; unrelated Roundcube orphans do not affect this rebuild.
+            foreach ($this->db->query("SELECT name FROM sqlite_master WHERE type='table'")->fetchAll(\PDO::FETCH_COLUMN) as $table) {
+                $quoted='"'.str_replace('"','""',$table).'"';
+                foreach ($this->db->query("PRAGMA foreign_key_list($quoted)")->fetchAll(\PDO::FETCH_ASSOC) as $key) {
+                    if (isset($checked[$key['table']])) $checked[$table]=true;
+                }
+            }
+            foreach (array_keys($checked) as $table) {
+                $quoted='"'.str_replace('"','""',$table).'"';
+                $violation=$this->db->query("PRAGMA foreign_key_check($quoted)")->fetch(\PDO::FETCH_ASSOC);
+                if ($violation!==false) throw new \RuntimeException("DAV cache schema rebuild left dangling reference in {$violation['table']} rowid {$violation['rowid']} (parent {$violation['parent']})");
+            }
             $this->db->commit();
         } catch (\Throwable $e) {
             if ($this->db->inTransaction()) $this->db->rollBack();
