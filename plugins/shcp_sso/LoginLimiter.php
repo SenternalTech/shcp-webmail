@@ -16,7 +16,7 @@ final class ShcpLoginLimiter
         $peer = $server['REMOTE_ADDR'] ?? '';
         if (!filter_var($peer, FILTER_VALIDATE_IP)
             || $secret === ''
-            || !in_array($peer, $proxies, true)
+            || !$this->isTrustedPeer($peer, $proxies)
             || !hash_equals($secret, $server['HTTP_X_SHCP_WEBMAIL_PROXY_AUTH'] ?? '')
         ) {
             return $peer;
@@ -36,12 +36,69 @@ final class ShcpLoginLimiter
             }
         }
         foreach (array_reverse($chain) as $ip) {
-            if (!in_array($ip, $proxies, true)) {
+            if (!$this->isTrustedPeer($ip, $proxies)) {
                 return $ip;
             }
         }
 
         return $peer;
+    }
+
+    private function isTrustedPeer(string $ip, array $proxies): bool
+    {
+        $address = inet_pton($ip);
+        if ($address === false) {
+            return false;
+        }
+        $mapped = str_repeat("\0", 10) . "\xff\xff";
+        if (strlen($address) === 16 && str_starts_with($address, $mapped)) {
+            $address = substr($address, 12);
+        }
+
+        foreach ($proxies as $entry) {
+            if (!is_string($entry)) {
+                continue;
+            }
+            $parts = explode('/', $entry);
+            if (count($parts) > 2 || !filter_var($parts[0], FILTER_VALIDATE_IP)) {
+                continue;
+            }
+            $network = inet_pton($parts[0]);
+            $bits = strlen($network) * 8;
+            if (count($parts) === 2) {
+                if (!preg_match('/^(0|[1-9][0-9]*)$/D', $parts[1]) || strlen($parts[1]) > 3) {
+                    continue;
+                }
+                $bits = (int) $parts[1];
+                if ($bits > strlen($network) * 8) {
+                    continue;
+                }
+            }
+            if (strlen($network) === 16 && str_starts_with($network, $mapped)) {
+                // Prefixes below /96 include addresses outside the mapped IPv4 space.
+                if ($bits < 96) {
+                    continue;
+                }
+                $network = substr($network, 12);
+                $bits -= 96;
+            }
+            if (strlen($address) !== strlen($network)) {
+                continue;
+            }
+            $whole = intdiv($bits, 8);
+            $remaining = $bits % 8;
+            if (substr($address, 0, $whole) !== substr($network, 0, $whole)) {
+                continue;
+            }
+            if ($remaining === 0
+                || (ord($address[$whole]) & (0xff << (8 - $remaining)))
+                    === (ord($network[$whole]) & (0xff << (8 - $remaining)))
+            ) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public function allowed(string $client, string $account): bool

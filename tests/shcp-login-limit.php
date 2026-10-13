@@ -75,6 +75,40 @@ try {
     $server['HTTP_X_FORWARDED_FOR'] = '198.51.100.4, 192.0.2.3';
     check($limiter->client($server, ['127.0.0.1', '192.0.2.3'], 'correct') === '198.51.100.4', 'trusted chain');
 
+    $server['REMOTE_ADDR'] = '192.0.2.10';
+    $server['HTTP_X_FORWARDED_FOR'] = '198.51.100.4';
+    check($limiter->client($server, ['192.0.2.0/24'], 'correct') === '198.51.100.4', 'IPv4 CIDR peer');
+    check($limiter->client($server, ['192.0.2.0/24'], 'wrong') === '192.0.2.10', 'CIDR peer still requires secret');
+    check($limiter->client($server, ['192.0.2.0/29'], 'correct') === '192.0.2.10', 'IPv4 CIDR outside range');
+    check($limiter->client($server, ['192.0.2.10/32'], 'correct') === '198.51.100.4', 'IPv4 host CIDR');
+    $server['HTTP_X_FORWARDED_FOR'] = '2001:db8::4';
+    check($limiter->client($server, ['192.0.2.0/0'], 'correct') === '2001:db8::4', 'explicit IPv4 default range');
+    $server['HTTP_X_FORWARDED_FOR'] = '198.51.100.4';
+    check($limiter->client($server, ['192.0.2.11'], 'correct') === '192.0.2.10', 'bare IPv4 is exact');
+    foreach (['192.0.2.0/', '192.0.2.0/33', '192.0.2.0/-1', '192.0.2.0/24junk', '192.0.2.0/024', '192.0.2.0//24', 'bad/0'] as $bad) {
+        check($limiter->client($server, [$bad], 'correct') === '192.0.2.10', 'malformed IPv4 declaration: ' . $bad);
+    }
+
+    $server['REMOTE_ADDR'] = '2001:db8:1::a';
+    check($limiter->client($server, ['2001:db8:1::/64'], 'correct') === '198.51.100.4', 'IPv6 CIDR peer');
+    check($limiter->client($server, ['2001:db8:2::/64'], 'correct') === '2001:db8:1::a', 'IPv6 CIDR outside range');
+    check($limiter->client($server, ['2001:db8:1::a/128'], 'correct') === '198.51.100.4', 'IPv6 host CIDR');
+    check($limiter->client($server, ['2001:db8:1::b'], 'correct') === '2001:db8:1::a', 'bare IPv6 is exact');
+    foreach (['2001:db8::/129', '2001:db8::/64extra', '2001:db8::/-1'] as $bad) {
+        check($limiter->client($server, [$bad], 'correct') === '2001:db8:1::a', 'malformed IPv6 declaration: ' . $bad);
+    }
+
+    $server['REMOTE_ADDR'] = '::ffff:192.0.2.10';
+    check($limiter->client($server, ['192.0.2.0/24'], 'correct') === '198.51.100.4', 'mapped peer matches IPv4 CIDR');
+    check($limiter->client($server, ['::ffff:192.0.2.0/120'], 'correct') === '198.51.100.4', 'mapped IPv6 CIDR');
+    check($limiter->client($server, ['::ffff:192.0.2.0/95'], 'correct') === '::ffff:192.0.2.10', 'mapped CIDR outside mapped space rejected');
+    $server['REMOTE_ADDR'] = '192.0.2.10';
+    check($limiter->client($server, ['::ffff:192.0.2.0/120'], 'correct') === '198.51.100.4', 'IPv4 peer matches mapped CIDR');
+    $server['HTTP_X_FORWARDED_FOR'] = '198.51.100.4, 192.0.2.3';
+    check($limiter->client($server, ['192.0.2.0/24'], 'correct') === '198.51.100.4', 'CIDR trusted chain');
+    $server['HTTP_X_FORWARDED_FOR'] = '198.51.100.4, ::ffff:192.0.2.3';
+    check($limiter->client($server, ['192.0.2.0/24'], 'correct') === '198.51.100.4', 'mapped trusted chain');
+
     check($limiter->allowed('198.51.100.4', 'alice@example.test'), 'initial login');
     for ($i = 0; $i < 10; $i++) {
         $limiter->failed('198.51.100.4', 'alice@example.test');
