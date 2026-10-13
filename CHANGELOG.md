@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Limit SHCP webmail password guesses per verified client and target account.
 - Fix SHCP DAV migration blocking on unrelated SQLite orphans and report migration errors.
 - Fix PHP Warning: Undefined variable $tmp_command in .../plugins/markasjunk/drivers/cmd_learn.php (#10294)
 - Security: Fix CSS declaration smuggling via un-encoded ampersand emission
