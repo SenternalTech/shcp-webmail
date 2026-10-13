@@ -58,6 +58,7 @@ class shcp_sso extends rcube_plugin
     private ?string $dav_ticket = null;
 
     private ?string $login_client = null;
+    private ?string $login_account = null;
     private bool $login_blocked = false;
 
     /**
@@ -81,6 +82,7 @@ class shcp_sso extends rcube_plugin
         // Every failed login must leave a countable trace (see mark_login_failed).
         $this->add_hook('login_failed', [$this, 'mark_login_failed']);
         $this->add_hook('authenticate', [$this, 'limit_login']);
+        $this->add_hook('login_after', [$this, 'mark_login_success']);
 
         // The SSO token is only ever presented to the login task. rcmail forces
         // task 'login' whenever there is no authenticated user, so the initial
@@ -133,11 +135,47 @@ class shcp_sso extends rcube_plugin
             (array) $config->get('shcp_login_trusted_proxies', []),
             (string) $config->get('shcp_login_proxy_secret', '')
         );
+        $this->login_account = (string) $args['user'];
         if (!$limiter->allowed($this->login_client, (string) $args['user'])) {
             $this->login_blocked = true;
             $args['abort'] = true;
             $args['error'] = 'Too many login attempts. Please try again in five minutes.';
             rcube::write_log('errors', 'Webmail login throttled from ' . $this->login_client);
+        } else {
+            $secret = (string) $config->get('shcp_login_proxy_secret', '');
+            $recent = $limiter->recentSuccess(
+                (string) ($_COOKIE['shcp_login_success'] ?? ''),
+                $this->login_client,
+                $this->login_account,
+                $secret
+            );
+            $delay = $limiter->delay($this->login_client, $this->login_account, $recent);
+            if ($delay > 0) {
+                rcube::write_log('errors', 'Webmail account login delayed from ' . $this->login_client);
+                sleep($delay);
+            }
+        }
+
+        return $args;
+    }
+
+    public function mark_login_success(array $args): array
+    {
+        if ($this->login_client === null || $this->login_account === null || headers_sent()) {
+            return $args;
+        }
+
+        $secret = (string) rcmail::get_instance()->config->get('shcp_login_proxy_secret', '');
+        $cookie = $this->login_limiter()->successCookie($this->login_client, $this->login_account, $secret);
+        if ($cookie !== '') {
+            $path = rtrim(dirname((string) ($_SERVER['SCRIPT_NAME'] ?? '/index.php')), '/') . '/';
+            setcookie('shcp_login_success', $cookie, [
+                'expires' => time() + 86400,
+                'path' => $path,
+                'secure' => true,
+                'httponly' => true,
+                'samesite' => 'Lax',
+            ]);
         }
 
         return $args;

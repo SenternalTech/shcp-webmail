@@ -6,6 +6,7 @@ final class ShcpLoginLimiter
     private const WINDOW = 300;
     private const LIMIT = 10;
     private const MAX_KEYS = 50000;
+    private const RECENT_SUCCESS = 86400;
 
     public function __construct(private string $path)
     {
@@ -111,7 +112,7 @@ final class ShcpLoginLimiter
             $db = $this->open();
             $db->exec('BEGIN IMMEDIATE');
             $db->prepare('DELETE FROM attempts WHERE expires <= ?')->execute([time()]);
-            foreach ($this->keys($client, $account) as $key) {
+            foreach (array_slice($this->keys($client, $account), 0, 2) as $key) {
                 $query = $db->prepare('SELECT failures, expires FROM attempts WHERE bucket = ?');
                 $query->execute([$key]);
                 $row = $query->fetch(PDO::FETCH_ASSOC);
@@ -124,7 +125,7 @@ final class ShcpLoginLimiter
                     return false;
                 }
             }
-            $db->rollBack();
+            $db->commit();
             return true;
         } catch (Throwable $e) {
             if (isset($db) && $db->inTransaction()) {
@@ -132,6 +133,46 @@ final class ShcpLoginLimiter
             }
             return false;
         }
+    }
+
+    public function delay(string $client, string $account, bool $recentSuccess = false): int
+    {
+        if ($recentSuccess || !filter_var($client, FILTER_VALIDATE_IP) || trim($account) === '') {
+            return 0;
+        }
+
+        try {
+            $db = $this->open();
+            $query = $db->prepare('SELECT failures FROM attempts WHERE bucket = ? AND expires > ?');
+            $query->execute([$this->keys($client, $account)[2], time()]);
+            $failures = (int) $query->fetchColumn();
+            return min(3, intdiv($failures, 3));
+        } catch (Throwable $e) {
+            return 3;
+        }
+    }
+
+    public function successCookie(string $client, string $account, string $secret, ?int $now = null): string
+    {
+        if ($secret === '' || !filter_var($client, FILTER_VALIDATE_IP) || trim($account) === '') {
+            return '';
+        }
+        $expires = ($now ?? time()) + self::RECENT_SUCCESS;
+        $mac = hash_hmac('sha256', 'shcp-login-success-v1:' . $expires . ':' . $this->accountClient($client, $account), $secret);
+        return $expires . '.' . $mac;
+    }
+
+    public function recentSuccess(string $cookie, string $client, string $account, string $secret, ?int $now = null): bool
+    {
+        if ($secret === '' || !preg_match('/\A([0-9]{10})\.([a-f0-9]{64})\z/D', $cookie, $match)) {
+            return false;
+        }
+        $time = $now ?? time();
+        if ((int) $match[1] < $time || (int) $match[1] > $time + self::RECENT_SUCCESS) {
+            return false;
+        }
+        $expected = $this->successCookie($client, $account, $secret, (int) $match[1] - self::RECENT_SUCCESS);
+        return $expected !== '' && hash_equals($expected, $cookie);
     }
 
     public function failed(string $client, string $account): bool
@@ -171,9 +212,15 @@ final class ShcpLoginLimiter
         $keys = [hash('sha256', 'client:' . $client)];
         $account = mb_strtolower(trim($account));
         if ($account !== '') {
+            $keys[] = hash('sha256', 'pair:' . $this->accountClient($client, $account));
             $keys[] = hash('sha256', 'account:' . substr($account, 0, 256));
         }
         return $keys;
+    }
+
+    private function accountClient(string $client, string $account): string
+    {
+        return $client . ':' . substr(mb_strtolower(trim($account)), 0, 256);
     }
 
     private function open(): PDO

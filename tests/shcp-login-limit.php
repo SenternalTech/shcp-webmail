@@ -114,19 +114,38 @@ try {
         $limiter->failed('198.51.100.4', 'alice@example.test');
     }
     check(!$limiter->allowed('198.51.100.4', 'alice@example.test'), 'limit after failures');
-    check(!$limiter->allowed('203.0.113.9', 'ALICE@example.test'), 'account bucket across clients');
+    check($limiter->allowed('203.0.113.9', 'ALICE@example.test'), 'account signal never locks a new client');
+    check($limiter->delay('203.0.113.9', 'ALICE@example.test') > 0, 'account signal delays new client');
+    check($limiter->delay('203.0.113.9', 'ALICE@example.test', true) === 0, 'recent successful client bypasses account delay');
     check($limiter->allowed('203.0.113.9', 'bob@example.test'), 'other account and client');
     check(!$limiter->allowed('198.51.100.4', 'bob@example.test'), 'client bucket across accounts');
     $limiter2 = new ShcpLoginLimiter($db);
     check(!$limiter2->allowed('198.51.100.4', 'alice@example.test'), 'persistent shared limit');
     (new PDO('sqlite:' . $db))->exec('UPDATE attempts SET expires = 1');
     check($limiter2->allowed('198.51.100.4', 'alice@example.test'), 'expired failures cleared');
+    check((int) (new PDO('sqlite:' . $db))->query('SELECT count(*) FROM attempts')->fetchColumn() === 0, 'allowed check commits expiry cleanup');
+    for ($i = 0; $i < 10; $i++) {
+        $limiter2->failed('198.51.100.' . ($i + 10), 'victim@example.test');
+    }
+    check($limiter2->allowed('203.0.113.77', 'victim@example.test'), 'distributed guesses cannot lock victim');
+    check($limiter2->delay('203.0.113.77', 'victim@example.test') > 0, 'distributed guesses signal delay');
+    $cookie = $limiter2->successCookie('203.0.113.77', 'victim@example.test', 'cookie-key', 1000000000);
+    check($limiter2->recentSuccess($cookie, '203.0.113.77', 'VICTIM@example.test', 'cookie-key', 1000000001), 'signed recent success');
+    check(!$limiter2->recentSuccess($cookie, '203.0.113.78', 'victim@example.test', 'cookie-key', 1000000001), 'cookie bound to client');
+    check(!$limiter2->recentSuccess($cookie, '203.0.113.77', 'other@example.test', 'cookie-key', 1000000001), 'cookie bound to account');
+    check(!$limiter2->recentSuccess($cookie, '203.0.113.77', 'victim@example.test', 'other-key', 1000000001), 'cookie signature');
+    check(!$limiter2->recentSuccess($cookie, '203.0.113.77', 'victim@example.test', 'cookie-key', 1000086401), 'cookie expiry');
+    check($limiter2->successCookie('203.0.113.77', 'victim@example.test', '') === '', 'no unsigned bypass cookie');
+    for ($i = 0; $i < 10; $i++) {
+        $limiter2->failed('203.0.113.88', 'pair@example.test');
+    }
+    check(!$limiter2->allowed('203.0.113.88', 'pair@example.test'), 'account client pair hard limit');
     check(!(new ShcpLoginLimiter($dir . '/missing/attempts.sqlite'))->allowed('198.51.100.4', 'alice@example.test'), 'storage error fails closed');
 
     new rcmail(new TestConfig(['temp_dir' => $dir, 'shcp_login_trusted_proxies' => ['127.0.0.1'], 'shcp_login_proxy_secret' => 'correct']));
     $plugin = new shcp_sso();
     $plugin->init();
-    check(isset($plugin->hooks['authenticate'], $plugin->hooks['login_failed']), 'login hooks registered');
+    check(isset($plugin->hooks['authenticate'], $plugin->hooks['login_failed'], $plugin->hooks['login_after']), 'login hooks registered');
     $_SERVER = ['REMOTE_ADDR' => '127.0.0.1', 'HTTP_X_FORWARDED_FOR' => '203.0.113.22', 'HTTP_X_SHCP_WEBMAIL_PROXY_AUTH' => 'correct'];
     for ($i = 0; $i < 10; $i++) {
         $args = $plugin->limit_login(['valid' => true, 'user' => 'target@example.test']);
