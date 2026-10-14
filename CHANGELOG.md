@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Replace webmail's account-wide password lockout with a capped delay and signed recent-login bypass; persist expired counter cleanup.
+- Match declared SHCP webmail proxy IPv4 and IPv6 CIDR ranges when identifying login clients.
+- Limit SHCP webmail password guesses per verified client and target account.
 - Fix SHCP DAV migration blocking on unrelated SQLite orphans and report migration errors.
 - Fix PHP Warning: Undefined variable $tmp_command in .../plugins/markasjunk/drivers/cmd_learn.php (#10294)
 - Security: Fix CSS declaration smuggling via un-encoded ampersand emission
