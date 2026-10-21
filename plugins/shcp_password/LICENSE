@@ -22,12 +22,12 @@ SOFTWARE.
 
 ---
 
-Why this directory is MIT while the rest of the installer is proprietary
-------------------------------------------------------------------------
+Why this directory is MIT while the rest of this repository is GPL
+------------------------------------------------------------------
 
 Senternal deliberately releases this password driver under MIT as project
-policy. This directory's explicit grant prevents the installer's proprietary
-LICENSE.md from being mistaken for the driver's license. Keep the MIT grant
+policy. This directory's explicit grant prevents the repository's top-level GPL
+LICENSE from being mistaken for the driver's license. Keep the MIT grant
 and copyright notice intact when redistributing or maintaining this driver.
 
 Roundcube is GPL-3.0-or-later with an exception for qualifying plugins and skins

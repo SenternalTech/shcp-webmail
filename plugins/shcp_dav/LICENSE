@@ -22,11 +22,11 @@ SOFTWARE.
 
 ---
 
-Why this directory is MIT while the rest of the installer is proprietary
-------------------------------------------------------------------------
+Why this directory is MIT while the rest of this repository is GPL
+------------------------------------------------------------------
 
-Senternal deliberately releases shcp_sso under MIT as project policy. This
-directory's explicit grant prevents the installer's proprietary LICENSE.md
+Senternal deliberately releases shcp_dav under MIT as project policy. This
+directory's explicit grant prevents the repository's top-level GPL LICENSE
 from being mistaken for the plugin's license. Keep the MIT grant and copyright
 notice intact when redistributing or maintaining this plugin.
 
