@@ -191,6 +191,40 @@ function wm_omit(string $payload, string $component, array $omission): void
     }
 }
 
+/**
+ * The reviewed patch series: one "TARGET PATCH" per line, TARGET a payload-relative
+ * directory the patch applies in ("." is the Roundcube tree itself). A patch outside
+ * plugins/ changes Roundcube core, so it is admitted only with an inputs.json
+ * "patches" entry naming its reason, upstream reference and removal condition
+ * (docs/webmail-distribution-plan.md: downstream patches are tracked visibly).
+ *
+ * @return list<array{0: string, 1: string}>
+ */
+function wm_patch_series(string $series, array $lock): array
+{
+    if (!is_file($series)) {
+        throw new RuntimeException('Reviewed patch series is absent');
+    }
+    $entries = [];
+    foreach (file($series, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) ?: [] as $line) {
+        if (str_starts_with($line, '#')) { continue; }
+        if (!preg_match('#^(\.|[a-z0-9_]+(?:/[a-z0-9_]+)*) ([A-Za-z0-9_.-]+\.patch)$#D', $line, $m)) {
+            throw new RuntimeException('Invalid patch series');
+        }
+        [, $target, $patch] = $m;
+        if (!str_starts_with($target, 'plugins/')) {
+            $meta = $lock['patches'][$patch] ?? null;
+            foreach (['reason', 'upstream', 'remove_when'] as $field) {
+                if (!is_array($meta) || !is_string($meta[$field] ?? null) || trim($meta[$field]) === '') {
+                    throw new RuntimeException("Core patch $patch lacks its $field in inputs.json");
+                }
+            }
+        }
+        $entries[] = [$target, $patch];
+    }
+    return $entries;
+}
+
 function wm_assemble(string $inputs, string $output): void
 {
     if (posix_geteuid() === 0) {
@@ -207,16 +241,9 @@ function wm_assemble(string $inputs, string $output): void
     wm_unpack("$inputs/{$lock['roundcube']['file']}", $payload, $lock['roundcube']);
     wm_directory("$payload/plugins/carddav");
     wm_unpack("$inputs/{$lock['carddav']['file']}", "$payload/plugins/carddav", $lock['carddav']);
-    if (!is_file(__DIR__ . '/patches/series')) {
-        throw new RuntimeException('Reviewed CardDAV patch series is absent');
-    }
-    foreach (file(__DIR__ . '/patches/series', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) ?: [] as $patch) {
-        if (str_starts_with($patch, '#')) { continue; }
-        if (!preg_match('/^[A-Za-z0-9_.-]+\.patch$/D', $patch)) {
-            throw new RuntimeException('Invalid patch series');
-        }
-        wm_process(['git', 'apply', '--check', __DIR__ . '/patches/' . $patch], "$payload/plugins/carddav");
-        wm_process(['git', 'apply', __DIR__ . '/patches/' . $patch], "$payload/plugins/carddav");
+    foreach (wm_patch_series(__DIR__ . '/patches/series', $lock) as [$target, $patch]) {
+        wm_process(['git', 'apply', '--check', __DIR__ . '/patches/' . $patch], "$payload/$target");
+        wm_process(['git', 'apply', __DIR__ . '/patches/' . $patch], "$payload/$target");
     }
     wm_substitute_package($inputs, $output, $payload, $lock['net_socket']);
     foreach ($lock['omit'] as $component => $omission) {

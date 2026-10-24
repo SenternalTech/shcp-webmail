@@ -1,0 +1,11 @@
+--- a/skins/elastic/meta.json
++++ b/skins/elastic/meta.json
+@@ -13,7 +13,7 @@
+ 		"additional_logo_types": ["dark", "small", "small-dark"]
+ 	},
+ 	"meta": {
+-		"viewport": "width=device-width, initial-scale=1.0, shrink-to-fit=no, maximum-scale=1.0",
++		"viewport": "width=device-width, initial-scale=1.0, shrink-to-fit=no",
+ 		"theme-color": "#f4f4f4",
+ 		"msapplication-navbutton-color": "#f4f4f4"
+ 	}
