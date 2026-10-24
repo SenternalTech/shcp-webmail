@@ -1,1 +1,2 @@
-rcmcarddav-5.1.3-shcp.patch
+plugins/carddav rcmcarddav-5.1.3-shcp.patch
+. elastic-viewport-allow-zoom.patch

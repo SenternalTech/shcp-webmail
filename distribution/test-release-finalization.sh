@@ -4,29 +4,31 @@ here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 work="$(mktemp -d -t webmail-finalize.XXXXXX)"
 trap 'rm -rf -- "$work"' EXIT
 mkdir -p "$work/release" "$work/bin"
-release=webmail-1.6.19-shcp.1
+# The release under test is whatever inputs.json pins, so a revision bump keeps this valid.
+release="$(jq -er '.release_id' "$here/inputs.json")"
+rev="$(jq -er '.revision' "$here/inputs.json")"
 source_name="$release-source.tar.gz"
-deb=shcp-webmail_1.6.19+shcp.1_all.deb
-rpm=shcp-webmail-1.6.19-1.shcp.noarch.rpm
+deb="shcp-webmail_1.6.19+shcp.${rev}_all.deb"
+rpm="shcp-webmail-1.6.19-${rev}.shcp.noarch.rpm"
 printf source >"$work/release/$source_name"
 printf deb >"$work/release/$deb"
 printf rpm >"$work/release/$rpm"
 source_sha="$(sha256sum "$work/release/$source_name" | awk '{print $1}')"
 cat >"$work/release/$release-release-set.base.json" <<EOF
-{"format":1,"release_id":"$release","package_name":"shcp-webmail","version":"1.6.19","revision":1,"source_date_epoch":1789776000,"source":{"url":"https://repo.shcp.dev/sources/shcp-webmail/$release/$source_name","filename":"$source_name","sha256":"$source_sha","size":6},"payload_manifest_sha256":"$(printf a%.0s {1..64})","source_inventory_sha256":"$(printf b%.0s {1..64})","source_lock_sha256":"$(printf c%.0s {1..64})","git_commit":"$(printf d%.0s {1..40})","packages":[]}
+{"format":1,"release_id":"$release","package_name":"shcp-webmail","version":"1.6.19","revision":$rev,"source_date_epoch":1789776000,"source":{"url":"https://repo.shcp.dev/sources/shcp-webmail/$release/$source_name","filename":"$source_name","sha256":"$source_sha","size":6},"payload_manifest_sha256":"$(printf a%.0s {1..64})","source_inventory_sha256":"$(printf b%.0s {1..64})","source_lock_sha256":"$(printf c%.0s {1..64})","git_commit":"$(printf d%.0s {1..40})","packages":[]}
 EOF
-cat >"$work/bin/dpkg-deb" <<'EOF'
+cat >"$work/bin/dpkg-deb" <<EOF
 #!/bin/sh
-case "$3" in
-  Version) printf 1.6.19+shcp.1 ;;
+case "\$3" in
+  Version) printf 1.6.19+shcp.${rev} ;;
   Architecture) printf all ;;
   *) exit 1 ;;
 esac
 EOF
-cat >"$work/bin/rpm" <<'EOF'
+cat >"$work/bin/rpm" <<EOF
 #!/bin/sh
-case "$*" in
-  *VERSION*) printf 1.6.19-1.shcp ;;
+case "\$*" in
+  *VERSION*) printf 1.6.19-${rev}.shcp ;;
   *ARCH*) printf noarch ;;
   *) exit 1 ;;
 esac

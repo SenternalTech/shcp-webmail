@@ -56,6 +56,18 @@ jobs:
           done
           jq -r 'to_entries[] | "\(.key)\t\(.value | join(","))"' "$inventory"
 
+      # Core patches (distribution/inputs.json "patches"): each is applied to the payload.
+      # elastic-viewport-allow-zoom: phones may pinch-zoom (WCAG 1.4.4, shcp-master#3338).
+      - name: Verify core patches
+        run: |
+          set -euo pipefail
+          meta="$RUNNER_TEMP/assembled/payload/skins/elastic/meta.json"
+          jq -e '.meta.viewport | startswith("width=device-width")' "$meta" >/dev/null
+          # `! cmd` is exempt from set -e, so the negative check exits explicitly.
+          if grep -q 'maximum-scale' "$meta"; then
+            echo "elastic still blocks pinch-zoom (maximum-scale in $meta)" >&2; exit 1
+          fi
+
       # Licence adjustments (shcp-master#1981): the substituted net_socket ships
       # with its BSD-2-Clause grant, and each omitted component is gone from both
       # the payload and the inventory.

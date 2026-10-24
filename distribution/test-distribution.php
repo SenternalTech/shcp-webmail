@@ -124,6 +124,23 @@ try {
     unset($locator['unexpected']);
     $locator['source']['unexpected'] = true;
     rejected(fn() => wm_validate_locator($locator), 'unknown source metadata is rejected');
+
+    // The patch series: a core patch is admitted only with its reason, upstream
+    // reference and removal condition, and no target escapes the payload.
+    $lock = wm_json(__DIR__ . '/inputs.json');
+    $series = wm_patch_series(__DIR__ . '/patches/series', $lock);
+    check(in_array(['.', 'elastic-viewport-allow-zoom.patch'], $series, true), 'the elastic viewport patch applies to the Roundcube tree');
+    check(in_array(['plugins/carddav', 'rcmcarddav-5.1.3-shcp.patch'], $series, true), 'the CardDAV patch still applies in its plugin');
+    foreach ($series as [$target, $patch]) {
+        check(is_file(__DIR__ . "/patches/$patch"), "series names an existing patch: $patch");
+    }
+    $bare = $lock;
+    unset($bare['patches']['elastic-viewport-allow-zoom.patch']['remove_when']);
+    rejected(fn() => wm_patch_series(__DIR__ . '/patches/series', $bare), 'a core patch without its removal condition is refused');
+    foreach (['../etc x.patch', '/tmp x.patch', 'plugins/../.. x.patch', 'x.patch', '. ../x.patch'] as $n => $line) {
+        file_put_contents("$tmp/series-$n", "$line\n");
+        rejected(fn() => wm_patch_series("$tmp/series-$n", $lock), "invalid series line is refused: $line");
+    }
 } finally {
     $entries = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($tmp, FilesystemIterator::SKIP_DOTS), RecursiveIteratorIterator::CHILD_FIRST);
     foreach ($entries as $entry) {

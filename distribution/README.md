@@ -11,7 +11,7 @@ native packager (`dpkg-deb` or `rpmbuild`). Run builds as an unprivileged user.
 1. Obtain the public archives identified in `inputs.json`, retaining their exact
    filenames. Verify upstream authenticity as part of release preparation.
 2. Run `php distribution/assemble.php INPUT_DIRECTORY ABSOLUTE_OUTPUT_DIRECTORY`.
-   This checks archive digests, applies the reviewed CardDAV patch series,
+   This checks archive digests, applies the reviewed patch series,
    installs the MIT plugins and protected external-config loaders, and emits a
    complete payload file manifest. Roundcube 1.6 routing is retained; its optional
    alternate `public_html` symlink tree and browser installer are omitted.
@@ -22,6 +22,13 @@ native packager (`dpkg-deb` or `rpmbuild`). Run builds as an unprivileged user.
    distribution's licence (GPL-2.0-only rtf-html-php, unlicensed TinyMCE
    language packs). Assembly and the source audit both refuse a payload where
    an omitted component survives.
+   `patches/series` lists `TARGET PATCH` pairs, `TARGET` being the payload
+   directory the patch applies in (`.` is the Roundcube tree). A patch outside
+   `plugins/` changes Roundcube itself and is admitted only with an `inputs.json`
+   `patches` entry giving its reason, upstream reference, removal condition and
+   test. The only one today, `elastic-viewport-allow-zoom.patch`, drops
+   `maximum-scale=1.0` from the elastic viewport so phones can pinch-zoom
+   (WCAG 1.4.4; roundcube/roundcubemail#8948).
 3. Audit every observed component with `source-audit.php`. A reviewed source lock,
    preferred editable source archives and their actual notices are mandatory.
    Missing/changed sources or unknown classifications fail the build.

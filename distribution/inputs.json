@@ -1,8 +1,8 @@
 {
   "format": 1,
-  "release_id": "webmail-1.6.19-shcp.1",
+  "release_id": "webmail-1.6.19-shcp.2",
   "version": "1.6.19",
-  "revision": 1,
+  "revision": 2,
   "source_date_epoch": 1789776000,
   "roundcube": {
     "file": "roundcubemail-1.6.19-complete.tar.gz",
@@ -47,6 +47,15 @@
       "reason": "Community TinyMCE language packs carry no license. Roundcube falls back to the built-in English editor strings.",
       "upstream": "https://github.com/tinymce/tinymce/issues/6470",
       "remove_when": "the packs gain a stated license, or SHCP ships its own editor translations"
+    }
+  },
+  "patches": {
+    "elastic-viewport-allow-zoom.patch": {
+      "path": "skins/elastic/meta.json",
+      "reason": "Elastic sets maximum-scale=1.0 in its viewport meta, which stops pinch-zoom on phones that honour it (Firefox for Android). That fails WCAG 2.2 SC 1.4.4 Resize Text (axe meta-viewport). Owner decision 2026-10-24, shcp-master#3338.",
+      "upstream": "https://github.com/roundcube/roundcubemail/issues/8948",
+      "remove_when": "upstream elastic drops maximum-scale from skins/elastic/meta.json; git apply --check then fails on the Roundcube bump and this entry goes with the patch",
+      "test": ".github/workflows/distribution.yml \"Verify core patches\": the assembled meta.json carries no maximum-scale"
     }
   }
 }
