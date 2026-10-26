@@ -16,8 +16,8 @@
  *
  * Configuration (config.inc.php):
  *   $config['plugins'][] = 'shcp_sso';
- *   // base64 of the panel's 32-byte Ed25519 PUBLIC key (verify only).
- *   $config['shcp_sso_public_key'] = 'base64-public-key';
+ *   // The plugin reads the panel's Ed25519 public key from the root-owned
+ *   // fixed path /etc/shcp-roundcube/sso-public-key.
  *   $config['shcp_sso_cache'] = 'db';
  *   // Root-owned sidecar (0640 root:<apache group>) holding two lines:
  *   //   <sso master user>\n<sso master password>
@@ -38,6 +38,9 @@ require_once __DIR__ . '/LoginLimiter.php';
 
 class shcp_sso extends rcube_plugin
 {
+    /** Mutable Roundcube config must never be able to redirect the verifier trust root. */
+    private const PUBLIC_KEY_FILE = '/etc/shcp-roundcube/sso-public-key';
+
     /**
      * Prefixed to the payload before the panel signs it, so a signature made with
      * the same key for anything else is never a webmail login. Identical to
@@ -527,12 +530,15 @@ class shcp_sso extends rcube_plugin
             return null;
         }
 
-        $configured = $rcmail->config->get('shcp_sso_public_key');
-        $public_key = is_string($configured) ? base64_decode($configured, true) : false;
+        $configured = @file_get_contents(self::PUBLIC_KEY_FILE);
+        if (!is_string($configured) || !preg_match('/\A[A-Za-z0-9+\/]{43}=\n?\z/D', $configured)) {
+            $configured = false;
+        }
+        $public_key = is_string($configured) ? base64_decode(rtrim($configured, "\n"), true) : false;
         if ($public_key === false || strlen($public_key) !== SODIUM_CRYPTO_SIGN_PUBLICKEYBYTES) {
             rcube::raise_error([
                 'code' => 500,
-                'message' => 'SSO: shcp_sso_public_key not configured or malformed',
+                'message' => 'SSO: public-key file missing or malformed',
             ], true, false);
             return null;
         }
