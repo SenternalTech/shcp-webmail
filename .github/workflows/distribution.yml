@@ -25,11 +25,15 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: "8.5"
-          extensions: phar
+          extensions: phar, sodium, pdo_sqlite
           coverage: none
 
       - name: Build-boundary checks
         run: php distribution/test-distribution.php
+
+      # The shcp_sso plugin's own checks: login limiter and the SC-707 trust root.
+      - name: shcp_sso plugin checks
+        run: php tests/shcp-login-limit.php
 
       # URLs and digests come from distribution/inputs.json, the same pin the
       # release build uses; assemble.php re-verifies the digests itself.

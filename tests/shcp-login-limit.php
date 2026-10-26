@@ -21,6 +21,13 @@ class rcube
     {
         self::$logs[] = [$name, $message];
     }
+
+    public static array $errors = [];
+
+    public static function raise_error(array $error, bool $log = false, bool $terminate = false): void
+    {
+        self::$errors[] = $error['message'] ?? '';
+    }
 }
 
 class TestConfig
@@ -156,6 +163,23 @@ try {
     check(!empty($args['abort']) && str_contains($args['error'], 'Too many'), 'login hook blocks with message');
     check(str_contains(rcube::$logs[count(rcube::$logs) - 1][1], '203.0.113.22'), 'block logs client');
     echo "PASS SHCP login limiter\n";
+
+    // SC-707: the verifier key comes only from the fixed root-owned file. A key
+    // planted in Roundcube config (a second $config line wins in PHP) must not
+    // verify a token its holder signed.
+    $attacker = sodium_crypto_sign_keypair();
+    new rcmail(new TestConfig(['temp_dir' => $dir, 'shcp_sso_public_key' => base64_encode(sodium_crypto_sign_publickey($attacker))]));
+    $payload = base64_encode(json_encode(['email' => 'victim@example.test', 'exp' => time() + 60, 'nonce' => bin2hex(random_bytes(16))]));
+    $token = $payload . '.' . bin2hex(sodium_crypto_sign_detached('shcp-webmail-sso-v1.' . $payload, sodium_crypto_sign_secretkey($attacker)));
+    rcube::$errors = [];
+    try {
+        $result = (new ReflectionMethod(shcp_sso::class, 'validate_token'))->invoke(new shcp_sso(), $token);
+    } catch (Throwable $e) {
+        throw new RuntimeException('config-planted key got past the signature check: ' . $e->getMessage());
+    }
+    check($result === null, 'config-planted key verifies no token');
+    check(array_intersect(rcube::$errors, ['SSO: public-key file missing or malformed', 'SSO: Invalid token signature']) !== [], 'refused at the key or the signature, not later');
+    echo "PASS SHCP SSO trust root\n";
 } finally {
     foreach (glob($dir . '/*') as $file) {
         unlink($file);
