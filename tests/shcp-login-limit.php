@@ -180,6 +180,44 @@ try {
     check($result === null, 'config-planted key verifies no token');
     check(array_intersect(rcube::$errors, ['SSO: public-key file missing or malformed', 'SSO: Invalid token signature']) !== [], 'refused at the key or the signature, not later');
     echo "PASS SHCP SSO trust root\n";
+
+    // SC-682 as amended (tool hosts): the hand-off POST's origin check, before
+    // and after the cutover. Before it, today's same-origin rule; after it, the
+    // exact panel Origin with same-origin, same-site or no Sec-Fetch-Site.
+    $origin = new ReflectionMethod(shcp_sso::class, 'request_is_same_origin');
+    $from = static function (array $config, array $server) use ($origin): bool {
+        new rcmail(new TestConfig($config));
+        $_SERVER = $server;
+
+        return $origin->invoke(new shcp_sso());
+    };
+    $before = ['shcp_sso_panel_hosts' => ['panel.example.test']];
+    check($from($before, ['HTTP_SEC_FETCH_SITE' => 'same-origin']), 'before cutover: same-origin accepted');
+    check(!$from($before, ['HTTP_SEC_FETCH_SITE' => 'same-site', 'HTTP_ORIGIN' => 'https://panel.example.test']), 'before cutover: same-site refused');
+    check($from($before, ['HTTP_ORIGIN' => 'https://panel.example.test']), 'before cutover: no Sec-Fetch-Site, listed host accepted');
+
+    $after = $before + ['shcp_sso_panel_origin' => 'https://panel.example.test'];
+    $panel = 'https://panel.example.test';
+    check($from($after, ['HTTP_SEC_FETCH_SITE' => 'same-site', 'HTTP_ORIGIN' => $panel]), 'after cutover: panel Origin, same-site accepted');
+    check($from($after, ['HTTP_ORIGIN' => $panel]), 'after cutover: panel Origin, no Sec-Fetch-Site accepted');
+    $refused = [
+        'sibling Origin' => ['HTTP_SEC_FETCH_SITE' => 'same-site', 'HTTP_ORIGIN' => 'https://shop.example.test'],
+        'Origin null' => ['HTTP_SEC_FETCH_SITE' => 'same-site', 'HTTP_ORIGIN' => 'null'],
+        'missing Origin' => ['HTTP_SEC_FETCH_SITE' => 'same-site'],
+        'missing Origin, same-origin' => ['HTTP_SEC_FETCH_SITE' => 'same-origin'],
+        'cross-site with panel Origin' => ['HTTP_SEC_FETCH_SITE' => 'cross-site', 'HTTP_ORIGIN' => $panel],
+        'none with panel Origin' => ['HTTP_SEC_FETCH_SITE' => 'none', 'HTTP_ORIGIN' => $panel],
+        'panel Origin with a port' => ['HTTP_SEC_FETCH_SITE' => 'same-site', 'HTTP_ORIGIN' => $panel . ':8443'],
+        'http panel Origin' => ['HTTP_SEC_FETCH_SITE' => 'same-site', 'HTTP_ORIGIN' => 'http://panel.example.test'],
+        'panel suffix' => ['HTTP_SEC_FETCH_SITE' => 'same-site', 'HTTP_ORIGIN' => $panel . '.evil.test'],
+    ];
+    foreach ($refused as $case => $server) {
+        check(!$from($after, $server), 'after cutover: refused, ' . $case);
+    }
+    foreach (['', 'panel.example.test', 'https://panel.example.test/', ['https://panel.example.test'], 'https://PANEL.example.test'] as $bad) {
+        check(!$from(['shcp_sso_panel_origin' => $bad], ['HTTP_SEC_FETCH_SITE' => 'same-site', 'HTTP_ORIGIN' => $panel]), 'malformed panel origin refuses: ' . json_encode($bad));
+    }
+    echo "PASS SHCP SSO hand-off origin\n";
 } finally {
     foreach (glob($dir . '/*') as $file) {
         unlink($file);
