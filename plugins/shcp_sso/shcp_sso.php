@@ -25,6 +25,10 @@
  *   // Host names the panel vhost answers to (no loopback, IPv6 bracketed).
  *   // Only consulted for a browser that sends no Sec-Fetch-Site header.
  *   $config['shcp_sso_panel_hosts'] = ['panel.example.com', '203.0.113.10'];
+ *   // Set only once webmail has moved to its own host: the panel's origin as a
+ *   // browser serializes it (lower-case host, no default :443). When set, it
+ *   // replaces both rules above.
+ *   $config['shcp_sso_panel_origin'] = 'https://panel.example.com';
  *
  * Token format: base64(json_payload).hex(ed25519_signature)
  * Payload: {"email": "user@domain.com", "exp": unix_timestamp, "nonce": "random_hex"}
@@ -326,9 +330,19 @@ class shcp_sso extends rcube_plugin
      * (Apache :443, then shcpd on loopback), and shcpd rewrites Host and
      * X-Forwarded-Host to its own loopback listener before PHP sees them. So the
      * installer writes the panel's names into $config['shcp_sso_panel_hosts'].
+     *
+     * After the tool-host cutover webmail has its own host, so no panel POST is
+     * same-origin any more. The installer then writes the panel's exact origin
+     * into $config['shcp_sso_panel_origin'] and request_is_from_panel() decides
+     * instead. Set but malformed, it refuses everything rather than fall back.
      */
     private function request_is_same_origin(): bool
     {
+        $panel = rcmail::get_instance()->config->get('shcp_sso_panel_origin');
+        if ($panel !== null) {
+            return $this->request_is_from_panel($panel);
+        }
+
         $site = $_SERVER['HTTP_SEC_FETCH_SITE'] ?? null;
         if (is_string($site) && $site !== '') {
             return $site === 'same-origin';
@@ -366,6 +380,29 @@ class shcp_sso extends rcube_plugin
         }
 
         return false;
+    }
+
+    /**
+     * SC-682 after the cutover: Sec-Fetch-Site, when sent, must be same-origin
+     * or same-site, and Origin must be exactly the panel origin. A tenant site
+     * on a sibling host is same-site too, so the Origin match is what refuses
+     * it. A missing Origin and the opaque "null" a cross-origin redirect leaves
+     * are refused. Every browser sends Origin on a cross-origin POST.
+     */
+    private function request_is_from_panel(mixed $panel): bool
+    {
+        if (!is_string($panel) || !preg_match('#\Ahttps://[a-z0-9.\-]+(:[0-9]{1,5})?\z#D', $panel)) {
+            return false;
+        }
+
+        $site = $_SERVER['HTTP_SEC_FETCH_SITE'] ?? null;
+        if (is_string($site) && $site !== '' && $site !== 'same-origin' && $site !== 'same-site') {
+            return false;
+        }
+
+        $origin = $_SERVER['HTTP_ORIGIN'] ?? null;
+
+        return is_string($origin) && $origin === $panel;
     }
 
     /**
