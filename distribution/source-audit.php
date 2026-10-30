@@ -5,7 +5,7 @@ require_once __DIR__ . '/assemble.php';
 
 function wm_components(string $payload): array
 {
-    $components = ['roundcube/roundcubemail@1.6.19' => ['GPL-3.0-or-later'],
+    $components = ['roundcube/roundcubemail@' . wm_json(__DIR__ . '/inputs.json')['version'] => ['GPL-3.0-or-later'],
         'mstilkerich/rcmcarddav@5.1.3' => ['GPL-2.0-or-later']];
     foreach (array_keys(wm_inventory($payload)) as $file) {
         if (!str_ends_with($file, 'vendor/composer/installed.json')) { continue; }

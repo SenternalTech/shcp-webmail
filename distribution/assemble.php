@@ -45,7 +45,7 @@ function wm_unpack(string $archive, string $destination, array $input): void
         // This release deliberately retains the existing 1.6 document-root
         // routing. The optional alternate public_html tree consists largely
         // of symlinks and is neither served nor packaged (SC-723).
-        if ($input['prefix'] === 'roundcubemail-1.6.19'
+        if (preg_match('/\Aroundcubemail-1\.6\.[0-9]+\z/', $input['prefix']) === 1
             && $parts[0] === $input['prefix'] && ($parts[1] ?? '') === 'public_html') {
             continue;
         }
