@@ -13,10 +13,13 @@
  *
  *   POST /api/internal/mail/password
  *   X-Internal-Token: <shared secret>
- *   {"username": "...", "curpass": "...", "newpass": "..."}
+ *   {"username": "...", "curpass": "...", "newpass": "...", "language": "de_DE"}
  *   -> 200 {"success": true,  "message": "..."}
  *   -> 400 {"success": false, "message": "..."}  bad credentials / policy / malformed
  *   -> 403 {"success": false, "message": "..."}  forbidden / disabled / suspended
+ *
+ * The message is in the user's Roundcube language when the panel has it, and
+ * in the panel's default otherwise.
  *
  * This replaces a much worse arrangement: the pre-migration driver ran an
  * UPDATE straight against the panel's database. Keeping the write behind the
@@ -193,6 +196,7 @@ class rcube_shcp_password
             'username' => (string) $username,
             'curpass' => (string) $curpass,
             'newpass' => (string) $newpass,
+            'language' => (string) $rcmail->get_user_language(),
         ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 
         if (!is_string($payload)) {
