@@ -92,6 +92,18 @@ network access, or private material with
 The rebuild verifies the archived payload signature, source audit, payload
 manifest, archive identity and provenance, then uses the original archive as
 the package source locator instead of recursively creating another archive.
+The payload signature is checked against the SHCP release key, primary
+fingerprint `53D8134D99A248002B320B24B0A2E16C763A1BFF`. An SHCP host has it at
+`/usr/share/keyrings/shcp-release-keyring.gpg`; anywhere else, fetch
+`https://repo.shcp.dev/shcp-release.gpg.key`, check that fingerprint, export it
+to a keyring and set `SHCP_RELEASE_KEYRING` to that file:
+
+    gpg --show-keys --with-fingerprint shcp-release.gpg.key
+    gpg --no-default-keyring --keyring ./release.kbx --import shcp-release.gpg.key
+    gpg --no-default-keyring --keyring ./release.kbx --export >release-keyring.gpg
+    SHCP_RELEASE_KEYRING=$PWD/release-keyring.gpg distribution/rebuild-from-source.sh ...
+
+A signature by any other key fails, whichever keyring is named.
 The producer release set must also be distributed with a detached
 `release-set.json.asc` signature from the release authority; signing that file
 is an external release step and is intentionally not performed by these public

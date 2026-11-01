@@ -32,7 +32,12 @@ jq -e --arg release_id "$release_id" --arg filename "$source_filename" '
   (.source.sha256 | test("^[a-f0-9]{64}$")) and (.source.size | type == "number" and . > 0)
 ' "$scratch/release-set.json" >/dev/null
 # Public PR CI has no release signing key and cannot pass this gate.
-gpgv --status-fd 1 --keyring /usr/share/keyrings/shcp-release-keyring.gpg \
+# An SHCP host has the release keyring installed; a recipient elsewhere points
+# SHCP_RELEASE_KEYRING at https://repo.shcp.dev/shcp-release.gpg.key (see README).
+# Whichever keyring is used, only the pinned release key's signature passes.
+keyring="${SHCP_RELEASE_KEYRING:-/usr/share/keyrings/shcp-release-keyring.gpg}"
+[[ -f "$keyring" ]] || { echo "no release keyring at $keyring: set SHCP_RELEASE_KEYRING (distribution/README.md)" >&2; exit 1; }
+gpgv --status-fd 1 --keyring "$keyring" \
     "$signature" "$assembled/payload-manifest.json" >"$scratch/signature-status"
 grep -qE '^\[GNUPG:\] VALIDSIG .* 53D8134D99A248002B320B24B0A2E16C763A1BFF$' "$scratch/signature-status"
 php "$here/verify-payload.php" "$assembled/payload" "$assembled/payload-manifest.json"
