@@ -198,6 +198,11 @@ class shcp_dav extends rcube_plugin
             $user=$args['user']??null;
             if (!$user instanceof rcube_user || (int)$user->ID<1) throw new RuntimeException('Unknown user');
             $this->cache()->purge((int)$user->ID);
+            // rcube_user::query() left its statement open on rcube's handle, and the BEGIN that follows would
+            // keep that pre-purge WAL snapshot: its DELETE is then refused at once. Drain one query to drop it.
+            $db=rcube::get_instance()->get_dbh();$r=$db->query('SELECT 1');
+            if ($r===false) throw new RuntimeException('Database unavailable');
+            while ($db->fetch_array($r)) {}
         } catch (Throwable $e) {$args['abort']=true;}
         return $args;
     }

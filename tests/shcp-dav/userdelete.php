@@ -26,7 +26,8 @@ try {
     $work = sys_get_temp_dir().'/shcp-dav-userdelete-'.bin2hex(random_bytes(6));
     mkdir($work, 0700);
     $dbfile = $work.'/roundcube.sqlite';
-    $dsn    = 'sqlite:'.$dbfile; // A plain PDO DSN: shcp_dav opens its own PDO from db_dsnw, never rcube's handle.
+    // The deployed form: rcube parses it for its own handle, shcp_dav opens a second PDO from the same string.
+    $dsn    = 'sqlite:///'.$dbfile;
 
     // Minimal CLI configuration for the assembled tree. rcube boots for the plugin API only; the managed
     // cache lives in $dsn, which shcp_dav reads back from db_dsnw.
@@ -75,9 +76,12 @@ try {
     need(!empty($rc->plugins->handlers[$hook]),
         "shcp_dav did not register a handler for the '$hook' hook that bin/deluser.sh fires");
 
-    // Fire the hook exactly as bin/deluser.sh does (same argument shape), through the real plugin API.
-    $user = new rcube_user(1, ['user_id' => 1, 'username' => 'alice@example.test', 'mail_host' => 'localhost', 'language' => 'en_US']);
-    need((int) $user->ID === 1, 'fixture user identity');
+    // bin/deluser.sh's own sequence on rcube's handle: rcube_user::query() leaves its statement open as
+    // rcube_db's last result, the hook runs, then startTransaction() and the DELETE.
+    $db = $rc->get_dbh();
+    $db->db_connect('w');
+    $user = rcube_user::query('alice@example.test', 'localhost');
+    need($user instanceof rcube_user && (int) $user->ID === 1, 'fixture user identity');
     $result = $rc->plugins->exec_hook($hook, ['user' => $user, 'username' => 'alice@example.test', 'host' => 'localhost']);
     need(empty($result['abort']), 'the hook aborted the deletion of a user whose managed cache is present and purgeable');
 
@@ -89,9 +93,13 @@ try {
     need((int) $pdo->query('SELECT COUNT(*) FROM shcp_dav_cleanup')->fetchColumn() === 0, 'hook left the cleanup journal open');
     need((int) $pdo->query("SELECT high FROM shcp_dav_idfloor WHERE scope='account'")->fetchColumn() >= $account, 'hook did not raise the account identifier floor');
 
-    // bin/deluser.sh's next step is DELETE FROM users; it must now succeed, i.e. the shcp_dav_user_delete
-    // guard is satisfied by the hook-driven cleanup. Without the wiring this row removal aborts.
-    $pdo->exec('DELETE FROM users WHERE user_id=1');
+    // bin/deluser.sh's next step, on rcube's handle: the guard is satisfied by the hook's cleanup, and the
+    // read rcube_user::query() left open must not pin a snapshot from before the hook's commit (WAL refuses
+    // that write at once with "database is locked"). Without the wiring the guard aborts it.
+    $db->startTransaction();
+    $db->query('DELETE FROM users WHERE user_id = ?', 1);
+    need(!$db->is_error(), 'bin/deluser.sh\'s DELETE failed after the hook: '.$db->is_error());
+    $db->endTransaction();
     need((int) $pdo->query('SELECT COUNT(*) FROM users WHERE user_id=1')->fetchColumn() === 0, 'user remained undeletable after the hook cleanup');
 
     ob_end_clean();
