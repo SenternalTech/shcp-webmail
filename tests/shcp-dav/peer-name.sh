@@ -5,7 +5,8 @@
 # 127.0.0.1 serves a certificate named only for loopback and echoes the Host it got.
 # Guards: the pinned peer name verifies; the origin's host alone does not; another
 # self-signed certificate for the same names is refused; a peer name
-# without a cafile is refused at construction.
+# without a cafile is refused at construction; a php.ini openssl.capath holding the
+# other certificate adds no trust beside the pinned file.
 set -euo pipefail
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 work="$(mktemp -d)"; pid=""
@@ -37,3 +38,5 @@ serve loop
 php "${here}/peer-name.php" "${work}/loop.crt" "${port}" loop
 serve other
 php "${here}/peer-name.php" "${work}/loop.crt" "${port}" other
+mkdir "${work}/capath"; cp "${work}/other.crt" "${work}/capath/$(openssl x509 -hash -noout -in "${work}/other.crt").0"
+php -d openssl.capath="${work}/capath" "${here}/peer-name.php" "${work}/loop.crt" "${port}" other

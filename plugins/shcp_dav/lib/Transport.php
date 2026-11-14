@@ -79,7 +79,8 @@ final class Transport
             $lines[] = 'Authorization: Basic ' . base64_encode($auth[0] . ':' . $auth[1]);
         }
         $ssl = ['verify_peer'=>true,'verify_peer_name'=>true,'allow_self_signed'=>false,'peer_name'=>$this->peerName ?? $host,'SNI_enabled'=>true];
-        if ($this->caFile !== null) $ssl['cafile'] = $this->caFile;
+        // capath '' too: otherwise a php.ini openssl.capath adds its CAs beside the pinned file.
+        if ($this->caFile !== null) { $ssl['cafile'] = $this->caFile; $ssl['capath'] = ''; }
         $context = stream_context_create(['ssl'=>$ssl,'http'=>[
             'method'=>$method,'header'=>implode("\r\n",$lines),'content'=>$body,'timeout'=>10,
             'ignore_errors'=>true,'follow_location'=>0,'max_redirects'=>0,'protocol_version'=>1.1,
