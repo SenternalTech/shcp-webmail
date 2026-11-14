@@ -23,3 +23,5 @@ serve() {
 }
 serve panel; php "${here}/tls.php" "${work}/panel.crt" "${port}" panel
 serve other; php "${here}/tls.php" "${work}/panel.crt" "${port}" other
+mkdir "${work}/capath"; cp "${work}/other.crt" "${work}/capath/$(openssl x509 -hash -noout -in "${work}/other.crt").0"
+php -d openssl.capath="${work}/capath" "${here}/tls.php" "${work}/panel.crt" "${port}" other

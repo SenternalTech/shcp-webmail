@@ -189,7 +189,8 @@ class rcube_shcp_password
         $tls = self::tls_options(
             $rcmail->config->get('shcp_password_cafile'),
             $rcmail->config->get('shcp_password_peer_name'),
-            $target['host']
+            $target['host'],
+            $target['transport']
         );
         if ($tls === null) {
             $this->log_error('shcp_password_cafile or shcp_password_peer_name is set but unusable; refusing to send the password');
@@ -444,10 +445,11 @@ class rcube_shcp_password
      * file alone (a pinned anchor), by shcp_password_peer_name or else the endpoint's
      * host; an IP host is matched against the certificate's IP SANs. Without it, the
      * historical unverified call is kept, for installs that have no pinned anchor yet.
+     * A pinned anchor on a plain-http endpoint is refused: nothing would be verified.
      *
      * @return array|null null when a setting is present but unusable (fail closed)
      */
-    public static function tls_options($cafile, $peerName, $host)
+    public static function tls_options($cafile, $peerName, $host, $transport = 'ssl')
     {
         if ($cafile === null) {
             if ($peerName !== null) {
@@ -461,7 +463,7 @@ class rcube_shcp_password
                 'SNI_enabled' => false,
             ];
         }
-        if (!is_string($cafile) || $cafile === '' || !is_file($cafile) || !is_readable($cafile)) {
+        if ($transport !== 'ssl' || !is_string($cafile) || $cafile === '' || !is_file($cafile) || !is_readable($cafile)) {
             return null;
         }
         if ($peerName !== null && (!is_string($peerName)
@@ -475,6 +477,8 @@ class rcube_shcp_password
             'verify_peer_name' => true,
             'allow_self_signed' => false,
             'cafile' => $cafile,
+            // Otherwise a php.ini openssl.capath adds its CAs beside the pinned file.
+            'capath' => '',
             'peer_name' => $name,
             // SNI carries a DNS name only, never an IP literal.
             'SNI_enabled' => filter_var($name, FILTER_VALIDATE_IP) === false,

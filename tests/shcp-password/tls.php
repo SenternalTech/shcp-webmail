@@ -21,6 +21,8 @@ need(($byIp['SNI_enabled'] ?? null) === false && ($byName['SNI_enabled'] ?? null
 need(rcube_shcp_password::tls_options($ca, 'wrong.invalid', '127.0.0.1') !== null
     && !dial(rcube_shcp_password::tls_options($ca, 'wrong.invalid', '127.0.0.1'), $port), 'a name the certificate does not carry verified');
 need(rcube_shcp_password::tls_options('/nonexistent/ca.pem', null, '127.0.0.1') === null, 'an unreadable cafile did not fail closed');
+need(rcube_shcp_password::tls_options('', null, '127.0.0.1') === null, 'an empty cafile did not fail closed');
+need(rcube_shcp_password::tls_options($ca, null, '127.0.0.1', 'tcp') === null, 'a pinned cafile on a plain-http endpoint did not fail closed');
 need(rcube_shcp_password::tls_options(null, 'shcpd.loopback.invalid', '127.0.0.1') === null, 'a peer name without a cafile did not fail closed');
 need(rcube_shcp_password::tls_options($ca, "bad\r\nname", '127.0.0.1') === null, 'a malformed peer name was accepted');
 $legacy = rcube_shcp_password::tls_options(null, null, '127.0.0.1');
