@@ -438,13 +438,6 @@ class rcube_shcp_password
     }
 
     /**
-     * Split the configured endpoint into socket-level parts.
-     *
-     * @param string $url Configured endpoint URL
-     *
-     * @return array|null null when the URL is unusable
-     */
-    /**
      * TLS options for the panel call.
      *
      * With shcp_password_cafile set, the panel's certificate is verified against that
@@ -488,6 +481,13 @@ class rcube_shcp_password
         ];
     }
 
+    /**
+     * Split the configured endpoint into socket-level parts.
+     *
+     * @param string $url Configured endpoint URL
+     *
+     * @return array|null null when the URL is unusable
+     */
     private function parse_endpoint($url)
     {
         $parts = parse_url($url);
