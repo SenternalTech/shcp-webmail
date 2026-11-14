@@ -44,9 +44,9 @@ class shcp_dav extends rcube_plugin
     {
         if ($this->transport!==null) return;
         $rc=rcube::get_instance();
-        $origin=$rc->config->get('shcp_dav_origin');$ca=$rc->config->get('shcp_dav_cafile');
-        if (!is_string($origin) || ($ca!==null && !is_string($ca))) throw new RuntimeException('Contacts configuration unavailable');
-        $this->transport=new \Shcp\Webmail\Dav\Transport($origin,$ca);
+        $origin=$rc->config->get('shcp_dav_origin');$ca=$rc->config->get('shcp_dav_cafile');$peer=$rc->config->get('shcp_dav_peer_name');
+        if (!is_string($origin) || ($ca!==null && !is_string($ca)) || ($peer!==null && !is_string($peer))) throw new RuntimeException('Contacts configuration unavailable');
+        $this->transport=new \Shcp\Webmail\Dav\Transport($origin,$ca,$peer);
         $this->credentials=new \Shcp\Webmail\Dav\Credentials($rc,$this->transport);
         $this->cache();
     }
