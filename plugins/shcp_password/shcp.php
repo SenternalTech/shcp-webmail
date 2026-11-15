@@ -186,6 +186,22 @@ class rcube_shcp_password
             ];
         }
 
+        $tls = self::tls_options(
+            $rcmail->config->get('shcp_password_cafile'),
+            $rcmail->config->get('shcp_password_peer_name'),
+            $target['host'],
+            $target['transport']
+        );
+        if ($tls === null) {
+            $this->log_error('shcp_password_cafile or shcp_password_peer_name is set but unusable; refusing to send the password');
+
+            return [
+                'code' => PASSWORD_ERROR,
+                'message' => 'Password changes are misconfigured on this server. Please contact your administrator.',
+            ];
+        }
+        $target['tls'] = $tls;
+
         // JSON, not form encoding: json_encode escapes every control character
         // and quote, so no password can break out of the body and forge extra
         // headers or a second request.
@@ -296,20 +312,7 @@ class rcube_shcp_password
      */
     private function post(array $target, $token, $payload)
     {
-        $context = stream_context_create([
-            'ssl' => [
-                // The panel is addressed over loopback by IP and presents its
-                // own self-signed certificate, so peer verification can never
-                // succeed and is not what protects this call — the loopback
-                // interface and the shared secret are. Same posture the
-                // installer already uses for the panel's DAV endpoint.
-                'verify_peer' => false,
-                'verify_peer_name' => false,
-                // An IP literal is not a legal SNI value; omit the extension
-                // (this is what curl does for IP hosts).
-                'SNI_enabled' => false,
-            ],
-        ]);
+        $context = stream_context_create(['ssl' => $target['tls']]);
 
         $errno = 0;
         $errstr = '';
@@ -433,6 +436,53 @@ class rcube_shcp_password
         }
 
         return $token;
+    }
+
+    /**
+     * TLS options for the panel call.
+     *
+     * With shcp_password_cafile set, the panel's certificate is verified against that
+     * file alone (a pinned anchor), by shcp_password_peer_name or else the endpoint's
+     * host; an IP host is matched against the certificate's IP SANs. Without it, the
+     * historical unverified call is kept, for installs that have no pinned anchor yet.
+     * A pinned anchor on a plain-http endpoint is refused: nothing would be verified.
+     *
+     * @return array|null null when a setting is present but unusable (fail closed)
+     */
+    public static function tls_options($cafile, $peerName, $host, $transport = 'ssl')
+    {
+        if ($cafile === null) {
+            if ($peerName !== null) {
+                return null;
+            }
+
+            return [
+                'verify_peer' => false,
+                'verify_peer_name' => false,
+                // An IP literal is not a legal SNI value; omit the extension.
+                'SNI_enabled' => false,
+            ];
+        }
+        if ($transport !== 'ssl' || !is_string($cafile) || $cafile === '' || !is_file($cafile) || !is_readable($cafile)) {
+            return null;
+        }
+        if ($peerName !== null && (!is_string($peerName)
+            || !preg_match('/\A[A-Za-z0-9](?:[A-Za-z0-9.:-]{0,251}[A-Za-z0-9])?\z/', $peerName))) {
+            return null;
+        }
+        $name = $peerName ?? (string) $host;
+
+        return [
+            'verify_peer' => true,
+            'verify_peer_name' => true,
+            'allow_self_signed' => false,
+            'cafile' => $cafile,
+            // Otherwise a php.ini openssl.capath adds its CAs beside the pinned file.
+            'capath' => '',
+            'peer_name' => $name,
+            // SNI carries a DNS name only, never an IP literal.
+            'SNI_enabled' => filter_var($name, FILTER_VALIDATE_IP) === false,
+        ];
     }
 
     /**
