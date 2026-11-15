@@ -32,6 +32,11 @@ jobs:
           extensions: pdo, pdo_sqlite
           coverage: none
 
+      # shcp-master#4369 (SC-904): the transport pins shcpd's loopback certificate by
+      # its own name, keeps the panel's Host, and refuses any other certificate.
+      - name: Check the pinned DAV peer name
+        run: bash tests/shcp-dav/peer-name.sh
+
       - name: Check schema migration isolation and diagnostics
         run: php tests/shcp-dav/schema.php
 

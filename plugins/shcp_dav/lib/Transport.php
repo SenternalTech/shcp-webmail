@@ -6,7 +6,13 @@ namespace Shcp\Webmail\Dav;
 final class Transport
 {
     private string $origin;
-    public function __construct(string $origin, private ?string $caFile = null)
+    /**
+     * @param ?string $peerName the TLS name to verify, when it differs from the origin's host.
+     *   The Host header stays the origin's (the panel admits only its own names); the
+     *   certificate is shcpd's loopback one, named for loopback, not for the panel
+     *   (shcp-master#4369, SC-904). Null keeps verifying the origin's host.
+     */
+    public function __construct(string $origin, private ?string $caFile = null, private ?string $peerName = null)
     {
         $p = parse_url($origin);
         if (!is_array($p) || ($p['scheme'] ?? '') !== 'https' || empty($p['host'])
@@ -17,6 +23,11 @@ final class Transport
         $this->origin = 'https://' . strtolower($p['host']) . (isset($p['port']) && $p['port'] !== 443 ? ':' . $p['port'] : '');
         if ($caFile !== null && (!is_file($caFile) || !is_readable($caFile))) {
             throw new \RuntimeException('DAV trust store unavailable');
+        }
+        // A pinned name needs the pinned anchor: without a cafile the system store would
+        // accept any public certificate issued for that name.
+        if ($peerName !== null && ($caFile === null || !preg_match('/\A[A-Za-z0-9](?:[A-Za-z0-9.:-]{0,251}[A-Za-z0-9])?\z/', $peerName))) {
+            throw new \RuntimeException('Invalid DAV peer name');
         }
     }
     public function origin(): string { return $this->origin; }
@@ -67,8 +78,9 @@ final class Transport
             if (count($auth) !== 2 || str_contains($auth[0], ':') || preg_match('/[\r\n\x00]/', implode('', $auth))) throw new \RuntimeException('Invalid DAV identity');
             $lines[] = 'Authorization: Basic ' . base64_encode($auth[0] . ':' . $auth[1]);
         }
-        $ssl = ['verify_peer'=>true,'verify_peer_name'=>true,'allow_self_signed'=>false,'peer_name'=>$host,'SNI_enabled'=>true];
-        if ($this->caFile !== null) $ssl['cafile'] = $this->caFile;
+        $ssl = ['verify_peer'=>true,'verify_peer_name'=>true,'allow_self_signed'=>false,'peer_name'=>$this->peerName ?? $host,'SNI_enabled'=>true];
+        // capath '' too: otherwise a php.ini openssl.capath adds its CAs beside the pinned file.
+        if ($this->caFile !== null) { $ssl['cafile'] = $this->caFile; $ssl['capath'] = ''; }
         $context = stream_context_create(['ssl'=>$ssl,'http'=>[
             'method'=>$method,'header'=>implode("\r\n",$lines),'content'=>$body,'timeout'=>10,
             'ignore_errors'=>true,'follow_location'=>0,'max_redirects'=>0,'protocol_version'=>1.1,
