@@ -29,6 +29,12 @@
  *   // browser serializes it (lower-case host, no default :443). When set, it
  *   // replaces both rules above.
  *   $config['shcp_sso_panel_origin'] = 'https://panel.example.com';
+ *   // The panel's mail landing (shcp-master#3897). When set, a browser that opens
+ *   // the login page with no Roundcube session is sent there, and Roundcube's own
+ *   // logout sends it to the landing's signed-out page. The login POST, a GET
+ *   // carrying _shcp_direct=1, and every other task are untouched, so a panel
+ *   // outage never takes webmail down. Unset or null: nothing changes.
+ *   $config['shcp_landing_url'] = 'https://panel.example.com/mail-account';
  *
  * Token format: base64(json_payload).hex(ed25519_signature)
  * Payload: {"email": "user@domain.com", "exp": unix_timestamp, "nonce": "random_hex"}
@@ -97,7 +103,87 @@ class shcp_sso extends rcube_plugin
         // every other task.
         if (rcmail::get_instance()->task === 'login') {
             $this->add_hook('startup', [$this, 'check_sso_token']);
+            // After the token check: a token POST is consumed above, a bare GET
+            // of the form goes to the panel's landing when one is configured.
+            $this->add_hook('startup', [$this, 'redirect_to_landing']);
         }
+        $this->add_hook('logout_after', [$this, 'redirect_after_logout']);
+    }
+
+    /**
+     * A GET of the login page with no session goes to the panel's mail landing
+     * (shcp-master#3897, plan AD7/R9) when shcp_landing_url is set.
+     *
+     * Only the plain document GET of the form moves. The login POST (action
+     * 'login'), the OAuth action, a request carrying _shcp_direct=1 (the
+     * landing's own escape when it is closed), AJAX and framed requests (which
+     * get Roundcube's session_error handling) and an authenticated session are
+     * untouched, so Roundcube's own form stays one query parameter away and a
+     * panel outage never takes webmail down.
+     */
+    public function redirect_to_landing(array $args): array
+    {
+        $landing = $this->landing_url();
+        if ($landing === null) {
+            return $args;
+        }
+
+        $rcmail = rcmail::get_instance();
+        if (($args['task'] ?? $rcmail->task) !== 'login' || ($args['action'] ?? '') !== '') {
+            return $args;
+        }
+        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET' || !empty($rcmail->user->ID)) {
+            return $args;
+        }
+        if (rcube_utils::get_input_string('_shcp_direct', rcube_utils::INPUT_GET) === '1') {
+            return $args;
+        }
+        if (rcube_utils::get_input_string('_remote', rcube_utils::INPUT_GET) !== ''
+            || rcube_utils::get_input_string('_framed', rcube_utils::INPUT_GET) !== '') {
+            return $args;
+        }
+
+        $rcmail->output->redirect($landing, 0, true);
+        exit;
+    }
+
+    /**
+     * Roundcube's logout ends the landing session too (plan AD10): the browser is
+     * sent to the landing's signed-out page, which invalidates it, so the next
+     * person at the browser is not walked back into a live landing by the
+     * redirect above. Nothing happens without shcp_landing_url.
+     */
+    public function redirect_after_logout(array $args): array
+    {
+        $landing = $this->landing_url();
+        if ($landing === null) {
+            return $args;
+        }
+
+        rcmail::get_instance()->output->redirect($landing . '/webmail-signed-out', 0, true);
+        exit;
+    }
+
+    /**
+     * The configured landing, or null when unset. A value that is not a bare
+     * https URL (no query, no fragment, no userinfo) disables the redirect and is
+     * logged, rather than sending every visitor to a mistyped or non-TLS place.
+     */
+    private function landing_url(): ?string
+    {
+        $url = rcmail::get_instance()->config->get('shcp_landing_url');
+        if ($url === null || $url === '') {
+            return null;
+        }
+        if (!is_string($url) || !preg_match('#^https://[a-z0-9]([a-z0-9.-]*[a-z0-9])?(?::[0-9]{1,5})?(?:/[A-Za-z0-9._~/-]*)?\z#', $url)) {
+            rcube::raise_error([
+                'code' => 500,
+                'message' => 'SSO: shcp_landing_url is not a plain https URL; landing redirect disabled',
+            ], true, false);
+            return null;
+        }
+
+        return rtrim($url, '/');
     }
 
     /**

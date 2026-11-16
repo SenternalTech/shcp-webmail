@@ -16,3 +16,7 @@ A token is accepted only from a POST the panel's hand-off page made. Which POSTs
 - **Own host (`shcp_sso_panel_origin` set, e.g. `https://panel.example.com`):** `Sec-Fetch-Site`, when sent, must be `same-origin` or `same-site`, and `Origin` must equal the panel origin exactly. A tenant site on a sibling host is also `same-site`, so the exact `Origin` is what refuses it. A missing `Origin`, `Origin: null`, `cross-site` and `none` are refused.
 
 Write the origin the way a browser serializes it: `https`, a lower-case host, and no `:443`. Any other value, `''` included, means webmail has moved but the origin is malformed, so every hand-off is refused rather than falling back to the same-host rule.
+
+## Panel mail landing (shcp-master#3897)
+
+With `shcp_landing_url` set to the panel's landing (`https://panel.example.com/mail-account`), a plain GET of the login page with no Roundcube session answers 302 to it, and Roundcube's own logout sends the browser to `<landing>/webmail-signed-out`, which ends the landing session. The login POST, a GET carrying `_shcp_direct=1`, AJAX and framed requests, and every authenticated request are untouched: Roundcube's form is always one query parameter away, and a panel outage never takes webmail down. Unset or null means nothing changes. A value that is not a plain `https://` URL (no query, fragment or userinfo) disables the redirect and is logged rather than followed.
