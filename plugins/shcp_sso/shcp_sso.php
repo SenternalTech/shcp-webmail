@@ -59,6 +59,13 @@ class shcp_sso extends rcube_plugin
     private const SIGNATURE_CONTEXT = 'shcp-webmail-sso-v1.';
 
     /**
+     * Session cookie set by a GET carrying _shcp_direct=1: the person asked for
+     * Roundcube's own form, and a session timeout must not undo that. Cleared by
+     * their logout.
+     */
+    private const DIRECT_COOKIE = 'shcp_direct';
+
+    /**
      * In-request marker that this request passed SSO token validation.
      *
      * The first storage_connect fires inside login(), before the session write
@@ -135,7 +142,16 @@ class shcp_sso extends rcube_plugin
         if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET' || !empty($rcmail->user->ID)) {
             return $args;
         }
+        // The escape is kept in a session cookie, because Roundcube's own session
+        // timeout sends the browser to ?_task=login&_err=session without the
+        // query: someone who asked for the form while the panel was closed must
+        // not be walked back to the closed panel by the timeout. A logout clears it.
         if (rcube_utils::get_input_string('_shcp_direct', rcube_utils::INPUT_GET) === '1') {
+            rcube_utils::setcookie(self::DIRECT_COOKIE, '1', 0);
+
+            return $args;
+        }
+        if (($_COOKIE[self::DIRECT_COOKIE] ?? '') === '1') {
             return $args;
         }
         if (rcube_utils::get_input_string('_remote', rcube_utils::INPUT_GET) !== ''
@@ -165,6 +181,14 @@ class shcp_sso extends rcube_plugin
     {
         $landing = $this->landing_url();
         if ($landing === null) {
+            return $args;
+        }
+        // Direct mode: the panel was closed when this session began, so stay on
+        // Roundcube's form (there is no landing session to end) and let the next
+        // visit go to the landing again.
+        if (($_COOKIE[self::DIRECT_COOKIE] ?? '') === '1') {
+            rcube_utils::setcookie(self::DIRECT_COOKIE, '', time() - 3600);
+
             return $args;
         }
 
