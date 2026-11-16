@@ -142,6 +142,14 @@ class shcp_sso extends rcube_plugin
             || rcube_utils::get_input_string('_framed', rcube_utils::INPUT_GET) !== '') {
             return $args;
         }
+        // A logout clicked in a tab whose Roundcube session had already expired
+        // arrives here as a session-less GET (set_task() forces 'login' with no
+        // user), never through logout_after. The person asked to sign out, so it
+        // ends the landing session too instead of walking them into a live one.
+        if (rcube_utils::get_input_string('_task', rcube_utils::INPUT_GET) === 'logout') {
+            $rcmail->output->redirect($landing . '/webmail-signed-out', 0, true);
+            exit;
+        }
 
         $rcmail->output->redirect($landing, 0, true);
         exit;

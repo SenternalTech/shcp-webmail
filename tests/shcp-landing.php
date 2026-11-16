@@ -181,6 +181,10 @@ try {
     check(landing_redirect($landing) === 'https://panel.example.com/mail-account', 'bare login GET goes to the landing');
     check(landing_redirect(['shcp_landing_url' => 'https://panel.example.com/mail-account/']) === 'https://panel.example.com/mail-account', 'trailing slash normalised');
     check(landing_redirect($landing, 'GET', ['_task' => 'login']) === 'https://panel.example.com/mail-account', 'explicit _task=login GET goes too');
+    // A logout clicked after the Roundcube session expired is a session-less GET of the login task
+    // (set_task() forces 'login'), so it never reaches logout_after: it still ends the landing session.
+    check(landing_redirect($landing, 'GET', ['_task' => 'logout', '_token' => 'abc']) === 'https://panel.example.com/mail-account/webmail-signed-out', 'a session-less logout GET goes to the signed-out page');
+    check(landing_redirect($landing, 'GET', ['_task' => 'login', '_err' => 'session']) === 'https://panel.example.com/mail-account', 'an expired session goes to the landing, not signed-out');
 
     // Untouched paths: Roundcube's own form stays reachable.
     check(landing_redirect($landing, 'GET', ['_shcp_direct' => '1']) === null, '_shcp_direct=1 is the escape');
@@ -206,6 +210,9 @@ try {
         'https://user:pw@panel.example.com/mail-account',
         'https://panel.example.com/mail account',
         "https://panel.example.com/mail-account\n",
+        "\nhttps://panel.example.com/mail-account",
+        'https://PANEL.example.com/mail-account',
+        'https://panel.example.com?x=1',
         'javascript:alert(1)',
         '//panel.example.com/mail-account',
         'panel.example.com/mail-account',
