@@ -209,7 +209,11 @@ try {
     check(rcube_utils::$cookies === [], 'a non-escape sets no cookie');
     // The escape survives Roundcube's own session timeout, which drops the query.
     check(landing_redirect($landing, 'GET', ['_task' => 'login', '_err' => 'session'], cookies: ['shcp_direct' => '1']) === null, 'a timeout in direct mode stays on the form');
-    check(landing_redirect($landing, 'GET', ['_task' => 'logout', '_token' => 'abc'], cookies: ['shcp_direct' => '1']) === null, 'a session-less logout in direct mode stays on the form');
+    // The direct cookie never decides a logout: an SSO login or a landing sign-in can follow an escape at a
+    // shared browser, so staying on the form would leave that landing session live (orchestrator BROKE at
+    // caf40ddf1). A closed landing bounces signed-out back to the direct form.
+    check(landing_redirect($landing, 'GET', ['_task' => 'logout', '_token' => 'abc'], cookies: ['shcp_direct' => '1']) === 'https://panel.example.com/mail-account/webmail-signed-out', 'a session-less logout in direct mode still ends the landing session');
+    check(count(rcube_utils::$cookies) === 1 && rcube_utils::$cookies[0][0] === 'shcp_direct' && rcube_utils::$cookies[0][1] === '' && rcube_utils::$cookies[0][2] < time(), 'a session-less logout clears the direct cookie');
     check(landing_redirect($landing, 'GET', [], cookies: ['shcp_direct' => '0']) === 'https://panel.example.com/mail-account', 'only the cookie value 1 is direct mode');
     check(landing_redirect($landing, 'POST', [], 'login', 'login') === null, 'the login POST is untouched');
     check(landing_redirect($landing, 'GET', [], 'login', 'login') === null, 'a GET of the login action is untouched');
@@ -247,9 +251,10 @@ try {
     // Logout ends the landing session only when the landing is configured.
     check(logout_redirect($landing) === 'https://panel.example.com/mail-account/webmail-signed-out', 'logout goes to the signed-out page');
     check(logout_redirect([]) === null, 'logout without a landing is untouched');
-    check(logout_redirect($landing, ['shcp_direct' => '1']) === null, 'a direct-mode logout stays on the form');
-    check(count(rcube_utils::$cookies) === 1 && rcube_utils::$cookies[0][0] === 'shcp_direct' && rcube_utils::$cookies[0][1] === '' && rcube_utils::$cookies[0][2] < time(), 'a direct-mode logout clears the cookie');
-    check(logout_redirect($landing, ['shcp_direct' => '0']) === 'https://panel.example.com/mail-account/webmail-signed-out', 'only the cookie value 1 keeps a logout on the form');
+    check(logout_redirect($landing) === 'https://panel.example.com/mail-account/webmail-signed-out' && rcube_utils::$cookies === [], 'a logout with no direct cookie sets none');
+    // Escape, then an SSO login, then logout: the stale cookie must not keep the landing session alive.
+    check(logout_redirect($landing, ['shcp_direct' => '1']) === 'https://panel.example.com/mail-account/webmail-signed-out', 'a logout after an escape still ends the landing session');
+    check(count(rcube_utils::$cookies) === 1 && rcube_utils::$cookies[0][0] === 'shcp_direct' && rcube_utils::$cookies[0][1] === '' && rcube_utils::$cookies[0][2] < time(), 'a logout clears the direct cookie');
     check(logout_redirect(['shcp_landing_url' => 'http://panel.example.com/mail-account']) === null, 'logout with a malformed landing is untouched');
 } catch (RuntimeException $e) {
     fwrite(STDERR, 'FAIL: ' . $e->getMessage() . "\n");

@@ -60,8 +60,10 @@ class shcp_sso extends rcube_plugin
 
     /**
      * Session cookie set by a GET carrying _shcp_direct=1: the person asked for
-     * Roundcube's own form, and a session timeout must not undo that. Cleared by
-     * their logout.
+     * Roundcube's own form, and a session timeout must not undo that. It only
+     * keeps a bare GET on the form; it never decides a logout, because anyone at a
+     * shared browser can set it, and an SSO login can follow it. Cleared by any
+     * logout.
      */
     private const DIRECT_COOKIE = 'shcp_direct';
 
@@ -151,9 +153,6 @@ class shcp_sso extends rcube_plugin
 
             return $args;
         }
-        if (($_COOKIE[self::DIRECT_COOKIE] ?? '') === '1') {
-            return $args;
-        }
         if (rcube_utils::get_input_string('_remote', rcube_utils::INPUT_GET) !== ''
             || rcube_utils::get_input_string('_framed', rcube_utils::INPUT_GET) !== '') {
             return $args;
@@ -161,10 +160,15 @@ class shcp_sso extends rcube_plugin
         // A logout clicked in a tab whose Roundcube session had already expired
         // arrives here as a session-less GET (set_task() forces 'login' with no
         // user), never through logout_after. The person asked to sign out, so it
-        // ends the landing session too instead of walking them into a live one.
+        // ends the landing session too instead of walking them into a live one,
+        // direct mode or not (see redirect_after_logout).
         if (rcube_utils::get_input_string('_task', rcube_utils::INPUT_GET) === 'logout') {
+            $this->clear_direct_cookie();
             $rcmail->output->redirect($landing . '/webmail-signed-out', 0, true);
             exit;
+        }
+        if (($_COOKIE[self::DIRECT_COOKIE] ?? '') === '1') {
+            return $args;
         }
 
         $rcmail->output->redirect($landing, 0, true);
@@ -176,6 +180,13 @@ class shcp_sso extends rcube_plugin
      * sent to the landing's signed-out page, which invalidates it, so the next
      * person at the browser is not walked back into a live landing by the
      * redirect above. Nothing happens without shcp_landing_url.
+     *
+     * Every logout goes there, direct mode included. The direct cookie says only
+     * that someone at this browser once asked for Roundcube's form, not that no
+     * landing session exists: an SSO login or a landing sign-in can follow it. A
+     * closed landing answers the signed-out page with a 302 to Roundcube's direct
+     * form (the panel's MailAccountGateListener), so a closed panel still ends on
+     * the form, with no loop.
      */
     public function redirect_after_logout(array $args): array
     {
@@ -183,17 +194,17 @@ class shcp_sso extends rcube_plugin
         if ($landing === null) {
             return $args;
         }
-        // Direct mode: the panel was closed when this session began, so stay on
-        // Roundcube's form (there is no landing session to end) and let the next
-        // visit go to the landing again.
-        if (($_COOKIE[self::DIRECT_COOKIE] ?? '') === '1') {
-            rcube_utils::setcookie(self::DIRECT_COOKIE, '', time() - 3600);
-
-            return $args;
-        }
+        $this->clear_direct_cookie();
 
         rcmail::get_instance()->output->redirect($landing . '/webmail-signed-out', 0, true);
         exit;
+    }
+
+    private function clear_direct_cookie(): void
+    {
+        if (isset($_COOKIE[self::DIRECT_COOKIE])) {
+            rcube_utils::setcookie(self::DIRECT_COOKIE, '', time() - 3600);
+        }
     }
 
     /**
