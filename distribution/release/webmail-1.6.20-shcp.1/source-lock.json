@@ -783,13 +783,13 @@
             "review": "",
             "preferred_source": true,
             "source": {
-                "file": "shcp-webmail-fb35f1341adb-src.tar.gz",
-                "url": "https://github.com/SenternalTech/shcp-webmail/archive/fb35f1341adb14c2b6d5107905e56cc1b6c21cda.tar.gz",
-                "sha256": "b5534e79883c97cb095c72eebefe6e556eebddbb8ba30b673b2c55110ff4acce"
+                "file": "shcp-webmail-a5f4ef2648f6-src.tar.gz",
+                "url": "https://github.com/SenternalTech/shcp-webmail/archive/a5f4ef2648f6fea142945cf5652938f441fe065a.tar.gz",
+                "sha256": "7898c3da280bc8ecd745375587b5bb399eb44f39aa77785bf1447efb1f607aeb"
             },
             "notice": {
                 "file": "shcp-shcp_dav-1-LICENSE",
-                "url": "https://raw.githubusercontent.com/SenternalTech/shcp-webmail/fb35f1341adb14c2b6d5107905e56cc1b6c21cda/plugins/shcp_dav/LICENSE",
+                "url": "https://raw.githubusercontent.com/SenternalTech/shcp-webmail/a5f4ef2648f6fea142945cf5652938f441fe065a/plugins/shcp_dav/LICENSE",
                 "sha256": "b922ddf8f96c70741ed85a7be36630539de46d1a4724daf7e2e2db37840afd7c"
             }
         },
@@ -801,13 +801,13 @@
             "review": "",
             "preferred_source": true,
             "source": {
-                "file": "shcp-webmail-fb35f1341adb-src.tar.gz",
-                "url": "https://github.com/SenternalTech/shcp-webmail/archive/fb35f1341adb14c2b6d5107905e56cc1b6c21cda.tar.gz",
-                "sha256": "b5534e79883c97cb095c72eebefe6e556eebddbb8ba30b673b2c55110ff4acce"
+                "file": "shcp-webmail-a5f4ef2648f6-src.tar.gz",
+                "url": "https://github.com/SenternalTech/shcp-webmail/archive/a5f4ef2648f6fea142945cf5652938f441fe065a.tar.gz",
+                "sha256": "7898c3da280bc8ecd745375587b5bb399eb44f39aa77785bf1447efb1f607aeb"
             },
             "notice": {
                 "file": "shcp-shcp_password-1-LICENSE",
-                "url": "https://raw.githubusercontent.com/SenternalTech/shcp-webmail/fb35f1341adb14c2b6d5107905e56cc1b6c21cda/plugins/shcp_password/LICENSE",
+                "url": "https://raw.githubusercontent.com/SenternalTech/shcp-webmail/a5f4ef2648f6fea142945cf5652938f441fe065a/plugins/shcp_password/LICENSE",
                 "sha256": "aa3ca4087d5dc1de5704f03500749a1e43abb26ac6168784ac3ebcf994c28217"
             }
         },
@@ -819,13 +819,13 @@
             "review": "",
             "preferred_source": true,
             "source": {
-                "file": "shcp-webmail-fb35f1341adb-src.tar.gz",
-                "url": "https://github.com/SenternalTech/shcp-webmail/archive/fb35f1341adb14c2b6d5107905e56cc1b6c21cda.tar.gz",
-                "sha256": "b5534e79883c97cb095c72eebefe6e556eebddbb8ba30b673b2c55110ff4acce"
+                "file": "shcp-webmail-a5f4ef2648f6-src.tar.gz",
+                "url": "https://github.com/SenternalTech/shcp-webmail/archive/a5f4ef2648f6fea142945cf5652938f441fe065a.tar.gz",
+                "sha256": "7898c3da280bc8ecd745375587b5bb399eb44f39aa77785bf1447efb1f607aeb"
             },
             "notice": {
                 "file": "shcp-shcp_sso-1-LICENSE",
-                "url": "https://raw.githubusercontent.com/SenternalTech/shcp-webmail/fb35f1341adb14c2b6d5107905e56cc1b6c21cda/plugins/shcp_sso/LICENSE",
+                "url": "https://raw.githubusercontent.com/SenternalTech/shcp-webmail/a5f4ef2648f6fea142945cf5652938f441fe065a/plugins/shcp_sso/LICENSE",
                 "sha256": "dd1823c43673ef8898f7f75910604d8cc50f6434c6dc3d90d16fcbffed66a566"
             }
         },

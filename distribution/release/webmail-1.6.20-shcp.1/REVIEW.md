@@ -17,9 +17,9 @@ fixes merged since 1.6.19 (#11, #12, #13, #16, #17, #20).
 | guzzlehttp/psr7@2.13.2 | 2.13.1 | MIT | `adee536f9510` |
 | mlocati/ip-lib@1.22.1 | 1.22.0 | MIT | `f096c0e9ec8b` |
 | roundcube/roundcubemail@1.6.20 | 1.6.19 | GPL-3.0-or-later | `1dd910522e73` |
-| shcp/shcp_dav@1 | 1 | MIT | `fb35f1341adb` |
-| shcp/shcp_password@1 | 1 | MIT | `fb35f1341adb` |
-| shcp/shcp_sso@1 | 1 | MIT | `fb35f1341adb` |
+| shcp/shcp_dav@1 | 1 | MIT | `a5f4ef2648f6` |
+| shcp/shcp_password@1 | 1 | MIT | `a5f4ef2648f6` |
+| shcp/shcp_sso@1 | 1 | MIT | `a5f4ef2648f6` |
 | symfony/polyfill-php80@v1.43.0 | v1.37.0 | MIT | `9c6a5d6b01ca` |
 
 - **Licence expressions are unchanged** for every repinned component. The regeneration refuses
@@ -28,10 +28,11 @@ fixes merged since 1.6.19 (#11, #12, #13, #16, #17, #20).
 - **Upstream components:** the source is GitHub's archive of the commit that Composer's
   `installed.json` (or `inputs.json` `source_commit` for Roundcube) records in the 1.6.20 payload,
   never a tag. carddav's bundled guzzle 7.10.0, promises 2.3.0 and psr7 2.9.0 are unchanged.
-- **shcp/\*** is pinned to `fb35f1341adb` (main when drafted). The `webmail-1.6.20-shcp.1` tag
-  must be placed on that commit. If shcp-webmail#21 or #22 should ship in this release, move the
-  tag and the three `shcp/*` entries (source and notice) to the commit that carries them, and
-  regenerate those six digests.
+- **shcp/\*** is pinned to `a5f4ef2648f6` (main on 2026-11-17, carrying shcp-webmail#21 and #22,
+  which the installer's loopback-TLS floor `RCM_DAV_LOOPBACK_MIN_RELEASE=webmail-1.6.20-shcp.1`
+  requires; shcp-master#4369). The `webmail-1.6.20-shcp.1` tag must be placed on that commit.
+  The three source digests were regenerated; the three LICENSE notices are byte-identical to the
+  draft's (same sha256), only their URLs moved.
 - **kolab/net_ldap3** is unchanged. Its source is
   `git archive --format=tar --prefix=php-net_ldap3-5a319cf437d75aad564ce7fd076cc5423722868b/ 5a319cf4… | gzip -9n`
   of `https://git.kolab.org/diffusion/PNL/php-net_ldap3.git`, which reproduces sha256 `d2ffbf9d…`.
