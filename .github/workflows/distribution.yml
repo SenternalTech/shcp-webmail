@@ -35,6 +35,11 @@ jobs:
       - name: shcp_sso plugin checks
         run: php tests/shcp-login-limit.php
 
+      # The panel mail landing redirect (shcp-master#3897): only the bare login GET
+      # moves, logout ends the landing, a malformed URL disables it.
+      - name: shcp_sso landing redirect checks
+        run: php tests/shcp-landing.php
+
       # URLs and digests come from distribution/inputs.json, the same pin the
       # release build uses; assemble.php re-verifies the digests itself.
       - name: Fetch the pinned inputs
