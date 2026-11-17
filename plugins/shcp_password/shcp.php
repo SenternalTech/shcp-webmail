@@ -446,10 +446,11 @@ class rcube_shcp_password
      * host; an IP host is matched against the certificate's IP SANs. Without it, the
      * historical unverified call is kept, for installs that have no pinned anchor yet.
      * A pinned anchor on a plain-http endpoint is refused: nothing would be verified.
+     * $transport has no default, so no caller can skip that refusal by omitting it.
      *
      * @return array|null null when a setting is present but unusable (fail closed)
      */
-    public static function tls_options($cafile, $peerName, $host, $transport = 'ssl')
+    public static function tls_options($cafile, $peerName, $host, $transport)
     {
         if ($cafile === null) {
             if ($peerName !== null) {
