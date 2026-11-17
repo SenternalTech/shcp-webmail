@@ -31,6 +31,9 @@ fixes merged since 1.6.19 (#11, #12, #13, #16, #17, #20).
 - **shcp/\*** is pinned to `a5f4ef2648f6` (main on 2026-11-17, carrying shcp-webmail#21 and #22,
   which the installer's loopback-TLS floor `RCM_DAV_LOOPBACK_MIN_RELEASE=webmail-1.6.20-shcp.1`
   requires; shcp-master#4369). The `webmail-1.6.20-shcp.1` tag must be placed on that commit.
+  The pin also ships two other plugin changes: #24 (shcp_sso's login page goes to the panel's
+  mail landing when one is configured, shcp-master#3897 step 5) and #25 (`tls_options` takes
+  `$transport`).
   The three source digests were regenerated; the three LICENSE notices are byte-identical to the
   draft's (same sha256), only their URLs moved.
 - **kolab/net_ldap3** is unchanged. Its source is
