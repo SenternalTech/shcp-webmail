@@ -6,7 +6,7 @@ to the approved webmail-1.6.19-shcp.1 lock (same source, notice, sha256 and revi
 directory's REVIEW.md for their licence readings.
 
 This release takes Roundcube's 1.6.20 security release (shcp-master#3915) and the shcp plugin
-fixes merged since 1.6.19 (#11, #12, #13, #16, #17, #20).
+fixes merged since 1.6.19 (#11, #12, #13, #16, #17, #20, #21, #22, #24, #25).
 
 ## Entries to review
 
