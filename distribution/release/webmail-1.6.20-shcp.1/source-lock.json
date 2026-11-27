@@ -204,7 +204,7 @@
                 "MIT"
             ],
             "license_expression": "MIT",
-            "review": "",
+            "review": "Approved by the release authority (owner), 2026-11-27: preferred source and notice pinned by sha256; licence expression as recorded in REVIEW.md.",
             "preferred_source": true,
             "source": {
                 "file": "guzzlehttp-guzzle-7.16.0-src.tar.gz",
@@ -240,7 +240,7 @@
                 "MIT"
             ],
             "license_expression": "MIT",
-            "review": "",
+            "review": "Approved by the release authority (owner), 2026-11-27: preferred source and notice pinned by sha256; licence expression as recorded in REVIEW.md.",
             "preferred_source": true,
             "source": {
                 "file": "guzzlehttp-promises-2.6.0-src.tar.gz",
@@ -258,7 +258,7 @@
                 "MIT"
             ],
             "license_expression": "MIT",
-            "review": "",
+            "review": "Approved by the release authority (owner), 2026-11-27: preferred source and notice pinned by sha256; licence expression as recorded in REVIEW.md.",
             "preferred_source": true,
             "source": {
                 "file": "guzzlehttp-psr7-2.13.2-src.tar.gz",
@@ -330,7 +330,7 @@
                 "MIT"
             ],
             "license_expression": "MIT",
-            "review": "",
+            "review": "Approved by the release authority (owner), 2026-11-27: preferred source and notice pinned by sha256; licence expression as recorded in REVIEW.md.",
             "preferred_source": true,
             "source": {
                 "file": "mlocati-ip-lib-1.22.1-src.tar.gz",
@@ -708,7 +708,7 @@
                 "GPL-3.0-or-later"
             ],
             "license_expression": "GPL-3.0-or-later",
-            "review": "",
+            "review": "Approved by the release authority (owner), 2026-11-27: preferred source and notice pinned by sha256; licence expression as recorded in REVIEW.md.",
             "preferred_source": true,
             "source": {
                 "file": "roundcube-roundcubemail-1.6.20-src.tar.gz",
@@ -780,7 +780,7 @@
                 "MIT"
             ],
             "license_expression": "MIT",
-            "review": "",
+            "review": "Approved by the release authority (owner), 2026-11-27: preferred source and notice pinned by sha256; licence expression as recorded in REVIEW.md.",
             "preferred_source": true,
             "source": {
                 "file": "shcp-webmail-a5f4ef2648f6-src.tar.gz",
@@ -798,7 +798,7 @@
                 "MIT"
             ],
             "license_expression": "MIT",
-            "review": "",
+            "review": "Approved by the release authority (owner), 2026-11-27: preferred source and notice pinned by sha256; licence expression as recorded in REVIEW.md.",
             "preferred_source": true,
             "source": {
                 "file": "shcp-webmail-a5f4ef2648f6-src.tar.gz",
@@ -816,7 +816,7 @@
                 "MIT"
             ],
             "license_expression": "MIT",
-            "review": "",
+            "review": "Approved by the release authority (owner), 2026-11-27: preferred source and notice pinned by sha256; licence expression as recorded in REVIEW.md.",
             "preferred_source": true,
             "source": {
                 "file": "shcp-webmail-a5f4ef2648f6-src.tar.gz",
@@ -852,7 +852,7 @@
                 "MIT"
             ],
             "license_expression": "MIT",
-            "review": "",
+            "review": "Approved by the release authority (owner), 2026-11-27: preferred source and notice pinned by sha256; licence expression as recorded in REVIEW.md.",
             "preferred_source": true,
             "source": {
                 "file": "symfony-polyfill-php80-v1.43.0-src.tar.gz",
